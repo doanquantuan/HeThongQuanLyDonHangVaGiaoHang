@@ -2,6 +2,8 @@ package vn.com.entity;
 
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -35,6 +37,7 @@ public class Delivery {
     @EqualsAndHashCode.Exclude
     @OneToOne
     @JoinColumn(name = "order_id", referencedColumnName = "id")
+    @JsonIgnore
     private Order order;
 
     @Column(name = "shipper_name", columnDefinition = "NVARCHAR(255)")
