@@ -24,7 +24,7 @@ import lombok.EqualsAndHashCode;
 import vn.com.enums.OrderStatus;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "Orders")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,6 +38,21 @@ public class Order {
     private String customerName;
 
     private String phone;
+
+    @Column(length = 100)
+    private String email;
+
+    @Column(name = "shipping_fee", columnDefinition = "DECIMAL(18,2)")
+    private Double shippingFee = 0.0;
+
+    @Column(name = "discount", columnDefinition = "DECIMAL(18,2)")
+    private Double discount = 0.0;
+
+    @Column(name = "payment_method", length = 50)
+    private String paymentMethod;
+
+    @Column(name = "payment_status", length = 50)
+    private String paymentStatus;
     
     @Column(columnDefinition = "NVARCHAR(255)")
     private String address;
@@ -45,7 +60,7 @@ public class Order {
     @Column(name = "order_date", updatable = false)
     private LocalDateTime orderDate = LocalDateTime.now();
 
-    @Column(name = "total_amount")
+    @Column(name = "total_amount", columnDefinition = "DECIMAL(18,2)")
     private Double totalAmount;
 
     @Enumerated(EnumType.STRING)

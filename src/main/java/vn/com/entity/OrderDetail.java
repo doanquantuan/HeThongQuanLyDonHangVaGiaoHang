@@ -16,7 +16,7 @@ import lombok.ToString;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "order_details")
+@Table(name = "Order_Details")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,6 +38,6 @@ public class OrderDetail {
     @Column(nullable = false)
     private Integer quantity;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "DECIMAL(18,2)")
     private Double price;
 }
