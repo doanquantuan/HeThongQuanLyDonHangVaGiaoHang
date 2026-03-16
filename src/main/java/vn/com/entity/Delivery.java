@@ -21,7 +21,7 @@ import lombok.EqualsAndHashCode;
 import vn.com.enums.DeliveryStatus;
 
 @Entity
-@Table(name = "deliveries")
+@Table(name = "Deliveries")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,6 +39,15 @@ public class Delivery {
 
     @Column(name = "shipper_name", columnDefinition = "NVARCHAR(255)")
     private String shipperName;
+
+    @Column(name = "shipper_phone", length = 20)
+    private String shipperPhone;
+
+    @Column(name = "vehicle_info", length = 100)
+    private String vehicleInfo;
+
+    @Column(name = "expected_time", length = 100)
+    private String expectedTime;
 
     @Enumerated(EnumType.STRING)
     private DeliveryStatus status = DeliveryStatus.WAITING;
