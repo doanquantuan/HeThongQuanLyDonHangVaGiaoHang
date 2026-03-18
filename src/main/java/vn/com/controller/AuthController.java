@@ -1,56 +1,58 @@
 package vn.com.controller;
 
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.servlet.http.HttpSession;
 import vn.com.dto.AuthResponse;
 import vn.com.dto.ErrorResponse;
 import vn.com.dto.LoginRequest;
 import vn.com.entity.User;
 import vn.com.repository.UserRepository;
 
-import java.util.Optional;
-
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*") // Tạm thời mở all (hoặc để "http://localhost:5173" nếu dùng Vite)
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     @Autowired
     private UserRepository userRepository;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        
-        // 1. Kiểm tra username có tồn tại không
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpSession session) {
         Optional<User> userOptional = userRepository.findByUsername(loginRequest.getUsername());
-        
-        // 2. Gộp chung báo lỗi để tăng bảo mật (chống dò quét tài khoản)
+
         if (userOptional.isEmpty() || !userOptional.get().getPassword().equals(loginRequest.getPassword())) {
-            // Trả về 401 Unauthorized thay vì 400 Bad Request
             return ResponseEntity
                     .status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponse("Tên đăng nhập hoặc mật khẩu không chính xác!"));
+                    .body(new ErrorResponse("Ten dang nhap hoac mat khau khong chinh xac!"));
         }
 
-        // 3. Kiểm tra trạng thái tài khoản (ví dụ: bị khóa)
         User user = userOptional.get();
         if (!user.getIsActive()) {
             return ResponseEntity
-                    .status(HttpStatus.FORBIDDEN) // 403 Forbidden
-                    .body(new ErrorResponse("Tài khoản của bạn đã bị khóa!"));
+                    .status(HttpStatus.FORBIDDEN)
+                    .body(new ErrorResponse("Tai khoan cua ban da bi khoa!"));
         }
 
-        // 4. Đăng nhập thành công -> Trả về DTO (Giấu password đi)
+        session.setAttribute("username", user.getUsername());
+        session.setAttribute("fullName", user.getFullName());
+        session.setAttribute("role", user.getRole());
+
         AuthResponse response = new AuthResponse(
                 user.getId(),
                 user.getUsername(),
                 user.getFullName(),
-                user.getRole()
-        );
+                user.getRole());
 
-        return ResponseEntity.ok(response); // Trả về 200 OK cùng dữ liệu user
+        return ResponseEntity.ok(response);
     }
 }

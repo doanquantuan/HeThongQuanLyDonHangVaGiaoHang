@@ -1,355 +1,39 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DeliveryMgr</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    /* ============================================
-       CSS DESIGN TOKENS (từ commit 1 - không đổi)
-       ============================================ */
-    :root {
-      --bg:#f7f7f5; --surface:#ffffff; --surface-2:#f3f3f0;
-      --surface-3:#ebebea; --hover:#f0f0ee;
-      --border:#e8e8e5; --border-strong:#d0d0cc;
-      --text-1:#1a1a1a; --text-2:#525252; --text-3:#8a8a8a; --text-4:#b8b8b5;
-      --accent:#2f5be8; --accent-light:#eef2fd; --accent-border:#c5d0f7;
-      --green:#15803d; --green-bg:#f0fdf4; --green-bd:#bbf7d0;
-      --orange:#c2510a; --orange-bg:#fff7ed; --orange-bd:#fed7aa;
-      --blue:#1d4ed8; --blue-bg:#eff6ff; --blue-bd:#bfdbfe;
-      --red:#b91c1c; --red-bg:#fef2f2; --red-bd:#fecaca;
-      --nav-h:56px; --radius-xs:4px; --radius-sm:6px; --radius:8px; --radius-lg:12px;
-      --shadow-sm:0 1px 2px rgba(0,0,0,.06);
-      --shadow:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);
-      --shadow-md:0 4px 8px rgba(0,0,0,.08),0 12px 32px rgba(0,0,0,.06);
-      --font:'Plus Jakarta Sans',sans-serif; --mono:'JetBrains Mono',monospace;
-    }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    html{-webkit-text-size-adjust:100%}
-    body{font-family:var(--font);background:var(--bg);color:var(--text-1);min-height:100vh;font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased}
-    a{text-decoration:none;color:inherit}
-    button{font-family:var(--font);cursor:pointer}
-    input,select,textarea{font-family:var(--font)}
-
-    /* NAVBAR (từ commit 1 - không đổi) */
-    .navbar{position:sticky;top:0;z-index:300;height:var(--nav-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;box-shadow:var(--shadow-sm)}
-    .nav-burger{display:none;width:36px;height:36px;align-items:center;justify-content:center;background:none;border:none;color:var(--text-2);font-size:18px;margin-right:8px;border-radius:var(--radius-sm);flex-shrink:0;transition:background .14s}
-    .nav-burger:hover{background:var(--surface-2)}
-    .nav-brand{display:flex;align-items:center;gap:9px;margin-right:28px;flex-shrink:0}
-    .nav-logo{width:30px;height:30px;border-radius:var(--radius-sm);background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff}
-    .nav-name{font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
-    .nav-name em{font-style:normal;color:var(--accent)}
-    .nav-links{display:flex;align-items:center;height:100%}
-    .nav-link{position:relative;display:flex;align-items:center;height:100%;padding:0 14px;font-size:13.5px;font-weight:500;color:var(--text-3);background:none;border:none;white-space:nowrap;transition:color .15s}
-    .nav-link:hover{color:var(--text-1)}
-    .nav-link.active{color:var(--text-1)}
-    .nav-link.active::after{content:'';position:absolute;bottom:0;left:14px;right:14px;height:2px;background:var(--accent);border-radius:2px 2px 0 0}
-    .nav-link.dim{color:var(--text-4);pointer-events:none}
-    .nav-spacer{flex:1}
-    .nav-right{display:flex;align-items:center;gap:6px}
-    .nav-icon{width:32px;height:32px;border-radius:var(--radius-sm);border:1px solid var(--border);background:none;display:flex;align-items:center;justify-content:center;color:var(--text-3);font-size:14px;transition:all .14s}
-    .nav-icon:hover{background:var(--surface-2);color:var(--text-1)}
-    .nav-user{display:flex;align-items:center;gap:7px;padding:4px 10px 4px 5px;border:1px solid var(--border);border-radius:20px;background:none;transition:background .14s}
-    .nav-user:hover{background:var(--surface-2)}
-    .nav-avatar{width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
-    .nav-uname{font-size:13px;font-weight:500;color:var(--text-1);max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:400}
-    .drawer-overlay.open{display:block}
-    .drawer{position:fixed;top:0;left:0;bottom:0;z-index:401;width:260px;background:var(--surface);padding:20px 14px;display:flex;flex-direction:column;gap:3px;transform:translateX(-100%);transition:transform .22s ease;overflow-y:auto}
-    .drawer.open{transform:translateX(0)}
-    .drawer-head{display:flex;align-items:center;gap:9px;padding-bottom:16px;border-bottom:1px solid var(--border);margin-bottom:8px}
-    .drawer-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;color:var(--text-2);background:none;border:none;width:100%;text-align:left;transition:all .12s}
-    .drawer-item:hover{background:var(--surface-2);color:var(--text-1)}
-    .drawer-item.active{background:var(--accent-light);color:var(--accent)}
-    .drawer-item.dim{opacity:.4;pointer-events:none}
-
-    /* ============================================
-       THÊM MỚI Ở COMMIT 2: SCREENS + ROUTING
-       ============================================ */
-    .screen { display: none; }
-    .screen.active {
-      display: block;
-      animation: fadeUp .2s ease;
-    }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(5px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ============================================
-       THÊM MỚI Ở COMMIT 2: SHARED LAYOUT
-       ============================================ */
-    .content { max-width: 1280px; margin: 0 auto; padding: 28px 24px 64px; }
-    .page-hd { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
-    .page-eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-3); margin-bottom: 4px; font-family: var(--mono); }
-    .page-title { font-size: 23px; font-weight: 700; letter-spacing: -.4px; line-height: 1.2; }
-    .page-sub   { font-size: 13px; color: var(--text-3); margin-top: 4px; }
-    .page-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-
-    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; border: none; transition: all .14s; white-space: nowrap; }
-    .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 1px 3px rgba(47,91,232,.3); }
-    .btn-primary:hover { background: #2450d0; }
-    .btn-default { background: var(--surface); color: var(--text-1); border: 1px solid var(--border); box-shadow: var(--shadow-sm); }
-    .btn-default:hover { background: var(--surface-2); border-color: var(--border-strong); }
-    .btn-ghost { background: none; color: var(--text-2); border: 1px solid transparent; }
-    .btn-ghost:hover { background: var(--surface-2); color: var(--text-1); }
-    .btn-sm { padding: 5px 11px; font-size: 12px; }
-
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
-    .card-p { padding: 20px; }
-    .sec-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--text-3); font-family: var(--mono); }
-
-    .bc { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-3); margin-bottom: 12px; }
-    .bc a { color: var(--accent); }
-    .bc a:hover { text-decoration: underline; }
-    .bc-sep { color: var(--border-strong); }
-
-    /* Skeleton placeholder — nội dung từng screen thêm sau */
-    .screen-placeholder {
-      border: 2px dashed var(--border);
-      border-radius: var(--radius-lg);
-      padding: 48px 24px;
-      text-align: center;
-      color: var(--text-3);
-      background: var(--surface);
-    }
-    .screen-placeholder h3 { font-size: 15px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
-    .screen-placeholder p  { font-size: 13px; }
-
-    /* Toast */
-    #toast{position:fixed;bottom:24px;right:24px;z-index:9999;background:var(--text-1);color:#fff;border-radius:var(--radius);padding:11px 16px;display:flex;align-items:center;gap:9px;font-size:13.5px;box-shadow:var(--shadow-md);opacity:0;transform:translateY(10px);pointer-events:none;transition:all .22s ease;max-width:340px}
-    #toast.show{opacity:1;transform:translateY(0);pointer-events:auto}
-    .t-ico{width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
-    #toast.success .t-ico{background:var(--green);color:#fff}
-    #toast.error   .t-ico{background:var(--red);color:#fff}
-
-    /* Responsive */
-    @media(max-width:768px){
-      .nav-links{display:none} .nav-burger{display:flex} .nav-name{display:none}
-      .content{padding:20px 16px 48px} .page-title{font-size:20px}
-    }
-    ::-webkit-scrollbar{width:5px;height:5px}
-    ::-webkit-scrollbar-track{background:transparent}
-    ::-webkit-scrollbar-thumb{background:var(--surface-3);border-radius:3px}
-    ::-webkit-scrollbar-thumb:hover{background:var(--border-strong)}
-  </style>
+  <title>Dashboard</title>
 </head>
 <body>
 
-<!-- NAVBAR (từ commit 1 - không đổi) -->
-<header class="navbar">
-  <button class="nav-burger" onclick="toggleDrawer()" aria-label="Menu">☰</button>
-  <a class="nav-brand" href="#" onclick="switchScreen('dashboard');return false;">
-    <div class="nav-logo">🚚</div>
-    <span class="nav-name">Delivery<em>Mgr</em></span>
-  </a>
-  <nav class="nav-links">
-    <button class="nav-link active" onclick="switchScreen('dashboard')">Dashboard</button>
-    <button class="nav-link" onclick="switchScreen('orders')">Đơn hàng</button>
-    <button class="nav-link" onclick="switchScreen('delivery')">Giao hàng</button>
-    <button class="nav-link dim">Khách hàng</button>
-    <button class="nav-link dim">Báo cáo</button>
-  </nav>
-  <div class="nav-spacer"></div>
-  <div class="nav-right">
-    <button class="nav-icon" title="Tìm kiếm">⌕</button>
-    <button class="nav-icon" title="Thông báo">🔔</button>
-    <button class="nav-user">
-      <div class="nav-avatar" id="navAvatar">A</div>
-      <span class="nav-uname" id="navUsername">Admin</span>
-    </button>
-  </div>
-</header>
-<div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
-<div class="drawer" id="drawer">
-  <div class="drawer-head">
-    <div class="nav-logo" style="width:24px;height:24px;font-size:12px;border-radius:5px">🚚</div>
-    <span style="font-size:14px;font-weight:700">DeliveryMgr</span>
-  </div>
-  <button class="drawer-item active" onclick="switchScreen('dashboard');toggleDrawer()">Dashboard</button>
-  <button class="drawer-item" onclick="switchScreen('orders');toggleDrawer()">Đơn hàng</button>
-  <button class="drawer-item" onclick="switchScreen('delivery');toggleDrawer()">Giao hàng</button>
-  <button class="drawer-item dim">Khách hàng</button>
-  <button class="drawer-item dim">Báo cáo</button>
-</div>
+<div th:replace="~{fragments/layout :: main('Tổng quan - DeliveryMgr', ~{::div.content})}">
 
-<!-- ============================================
-     THÊM MỚI Ở COMMIT 2: 5 SCREEN SKELETONS
-     Nội dung chi tiết từng screen → Story riêng
-     ============================================ -->
-
-<!-- Screen 1: Dashboard -->
-<div id="screen-dashboard" class="screen active">
   <div class="content">
     <div class="page-hd">
       <div>
-        <div class="page-eyebrow">Overview</div>
-        <h1 class="page-title">Dashboard Tổng quan</h1>
-        <p class="page-sub">Cập nhật lúc 08:32 — 18/03/2026</p>
+        <div class="page-eyebrow">DASHBOARD</div>
+        <h1 class="page-title">Tổng quan hệ thống</h1>
+        <div class="page-sub">Xem nhanh tình trạng đơn hàng và giao hàng hôm nay.</div>
       </div>
       <div class="page-actions">
-        <button class="btn btn-default btn-sm">↓ Xuất báo cáo</button>
-        <button class="btn btn-primary btn-sm" onclick="switchScreen('addorder')">+ Thêm đơn hàng</button>
+        <button class="btn btn-default">📅 Lọc theo ngày</button>
+        <button class="btn btn-primary" onclick="showToast('Tính năng đang phát triển!', 'success')">
+          + Tạo đơn hàng mới
+        </button>
       </div>
     </div>
-    <div class="screen-placeholder">
-      <h3>Nội dung Dashboard</h3>
-      <p>Stat Cards + Bar Chart + Donut Chart + Recent Orders<br>→ Sẽ xây dựng ở Story tiếp theo</p>
+
+    <div class="card card-p">
+      <div class="sec-hd">
+        <div class="sec-title">THÔNG BÁO</div>
+      </div>
+      <p style="color: var(--text-2);">Giao diện đã tích hợp CSS thành công! Hãy sẵn sàng cho Task OR-60.</p>
+      <br>
+      <span class="badge badge-green">Hoạt động bình thường</span>
     </div>
   </div>
+
 </div>
 
-<!-- Screen 2: Order List -->
-<div id="screen-orders" class="screen">
-  <div class="content">
-    <div class="page-hd">
-      <div>
-        <div class="page-eyebrow">Orders</div>
-        <h1 class="page-title">Danh sách đơn hàng</h1>
-      </div>
-      <div class="page-actions">
-        <button class="btn btn-default btn-sm">↓ Xuất Excel</button>
-        <button class="btn btn-primary btn-sm" onclick="switchScreen('addorder')">+ Thêm đơn hàng</button>
-      </div>
-    </div>
-    <div class="screen-placeholder">
-      <h3>Danh sách đơn hàng</h3>
-      <p>Filter Bar + Table + Pagination<br>→ Sẽ xây dựng ở Story tiếp theo</p>
-    </div>
-  </div>
-</div>
-
-<!-- Screen 3: Order Detail -->
-<div id="screen-detail" class="screen">
-  <div class="content">
-    <div class="bc">
-      <a href="#" onclick="switchScreen('orders');return false;">Đơn hàng</a>
-      <span class="bc-sep">/</span>
-      <span>Chi tiết đơn hàng</span>
-    </div>
-    <div class="page-hd">
-      <div>
-        <div class="page-eyebrow">Order Detail</div>
-        <h1 class="page-title">Chi tiết đơn hàng</h1>
-      </div>
-      <div class="page-actions">
-        <button class="btn btn-default btn-sm">In đơn hàng</button>
-        <button class="btn btn-primary btn-sm" onclick="switchScreen('addorder')">Chỉnh sửa</button>
-      </div>
-    </div>
-    <div class="screen-placeholder">
-      <h3>Chi tiết đơn hàng</h3>
-      <p>Thông tin khách + Sản phẩm + Timeline + Totals<br>→ Sẽ xây dựng ở Story tiếp theo</p>
-    </div>
-  </div>
-</div>
-
-<!-- Screen 4: Delivery List -->
-<div id="screen-delivery" class="screen">
-  <div class="content">
-    <div class="page-hd">
-      <div>
-        <div class="page-eyebrow">Delivery</div>
-        <h1 class="page-title">Danh sách giao hàng</h1>
-      </div>
-    </div>
-    <div class="screen-placeholder">
-      <h3>Danh sách giao hàng</h3>
-      <p>Tabs trạng thái + Bảng giao hàng<br>→ Sẽ xây dựng ở Story tiếp theo</p>
-    </div>
-  </div>
-</div>
-
-<!-- Screen 5: Add / Edit Order -->
-<div id="screen-addorder" class="screen">
-  <div class="content">
-    <div class="bc">
-      <a href="#" onclick="switchScreen('orders');return false;">Đơn hàng</a>
-      <span class="bc-sep">/</span>
-      <span>Thêm mới</span>
-    </div>
-    <div class="page-hd">
-      <div>
-        <div class="page-eyebrow">New Order</div>
-        <h1 class="page-title">Tạo đơn hàng mới</h1>
-      </div>
-    </div>
-    <div class="screen-placeholder">
-      <h3>Form tạo / chỉnh sửa đơn hàng</h3>
-      <p>Form 2 cột + Sản phẩm động + Validate + Toast<br>→ Sẽ xây dựng ở Story tiếp theo</p>
-    </div>
-  </div>
-</div>
-
-<div id="toast"><div class="t-ico" id="toastIco"></div><span id="toastMsg"></span></div>
-
-<script>
-  /* Init username (từ commit 1 - không đổi) */
-  (function () {
-    const u = sessionStorage.getItem('username')
-            || localStorage.getItem('username')
-            || 'Admin';
-    document.getElementById('navUsername').textContent = u;
-    document.getElementById('navAvatar').textContent   = u.charAt(0).toUpperCase();
-  })();
-
-  /* Mobile drawer (từ commit 1 - không đổi) */
-  function toggleDrawer() {
-    document.getElementById('drawer').classList.toggle('open');
-    document.getElementById('drawerOverlay').classList.toggle('open');
-  }
-
-  /* ==========================================
-     THÊM MỚI Ở COMMIT 2: switchScreen()
-     ========================================== */
-  const SECTION   = {
-    dashboard: 'dashboard',
-    orders:    'orders',
-    detail:    'orders',
-    addorder:  'orders',
-    delivery:  'delivery',
-  };
-  const NAV_LABEL = {
-    dashboard: 'Dashboard',
-    orders:    'Đơn hàng',
-    delivery:  'Giao hàng',
-  };
-
-  function switchScreen(name) {
-    // 1. Ẩn tất cả screens
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-
-    // 2. Hiện screen được chọn
-    const el = document.getElementById('screen-' + name);
-    if (el) el.classList.add('active');
-
-    // 3. Sync nav tab active state
-    const sec = SECTION[name] || name;
-    document.querySelectorAll('.nav-link:not(.dim)').forEach(t => {
-      t.classList.toggle('active', t.textContent.trim() === NAV_LABEL[sec]);
-    });
-
-    // 4. Sync drawer active state
-    document.querySelectorAll('.drawer-item:not(.dim)').forEach((b, i) => {
-      b.classList.toggle('active', ['dashboard', 'orders', 'delivery'][i] === sec);
-    });
-
-    // 5. Scroll về đầu trang
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  /* Toast (dùng chung) */
-  let _toastTimer;
-  function showToast(msg, type = 'success') {
-    const icons = { success: '✓', error: '✕' };
-    document.getElementById('toastIco').textContent = icons[type] || '✓';
-    document.getElementById('toastMsg').textContent = msg;
-    const t = document.getElementById('toast');
-    t.className = 'show ' + type;
-    clearTimeout(_toastTimer);
-    _toastTimer = setTimeout(() => t.className = '', 3200);
-  }
-</script>
 </body>
 </html>
