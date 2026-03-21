@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Danh sách đơn hàng – DeliveryMgr</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<style>
+:root{
+  --white:#fff;
+  --gray-50:#f8f9fa;
+  --gray-100:#f1f3f5;
+  --gray-200:#e9ecef;
+  --gray-300:#dee2e6;
+  --gray-400:#ced4da;
+  --gray-500:#adb5bd;
+  --gray-600:#6c757d;
+  --gray-700:#495057;
+  --gray-800:#343a40;
+  --gray-900:#212529;
+  --primary:#1a56db;
+  --primary-light:#e8f0fe;
+  --danger:#dc3545;
+  --danger-light:#fff5f5;
+  --success:#198754;
+  --success-light:#d1e7dd;
+  --warning:#fd7e14;
+  --warning-light:#fff3cd;
+  --info:#0dcaf0;
+  --info-light:#cff4fc;
+  --radius:6px;
+  --shadow:0 2px 8px rgba(0,0,0,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--gray-100);color:var(--gray-800);font-size:14px;min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--gray-900);color:#fff;display:flex;align-items:center;height:48px;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.topbar-brand{display:flex;align-items:center;gap:8px;padding:0 20px;height:100%;font-weight:800;font-size:15px;border-right:1px solid rgba(255,255,255,.12);white-space:nowrap;text-decoration:none;color:#fff}
+.topbar-nav{display:flex;height:100%}
+.topbar-nav a{display:flex;align-items:center;padding:0 16px;color:rgba(255,255,255,.65);font-size:13.5px;font-weight:600;text-decoration:none;height:100%;transition:all .15s;border-bottom:2px solid transparent;white-space:nowrap}
+.topbar-nav a:hover{color:#fff;background:rgba(255,255,255,.06)}
+.topbar-nav a.active{color:#fff;border-bottom-color:var(--primary)}
+
+/* ── CONTENT ── */
+.content{max-width:1200px;margin:0 auto;padding:22px 20px 60px}
+
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.page-title{font-size:24px;font-weight:800;color:var(--gray-900)}
+.btn-add{display:inline-flex;align-items:center;gap:7px;background:var(--gray-900);color:#fff;padding:9px 18px;border-radius:var(--radius);font-family:inherit;font-size:13.5px;font-weight:700;text-decoration:none;border:none;cursor:pointer;transition:background .15s}
+.btn-add:hover{background:#000}
+
+/* ── FILTER PANEL ── */
+.filter-panel{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);padding:14px 16px;margin-bottom:16px}
+.filter-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray-500);margin-bottom:10px}
+.filter-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.fg{display:flex;flex-direction:column;gap:4px}
+.fg label{font-size:12px;font-weight:700;color:var(--gray-600)}
+.fg input,.fg select{border:1px solid var(--gray-400);border-radius:var(--radius);padding:8px 10px;font-family:inherit;font-size:13px;color:var(--gray-800);background:var(--white);outline:none;transition:border-color .15s}
+.fg input:focus,.fg select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.fg-search{flex:1;min-width:220px}
+.fg-search input{width:100%;padding-left:34px}
+.fg-search-wrap{position:relative}
+.fg-search-wrap i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray-400);font-size:14px}
+.btn-filter{background:var(--gray-900);color:#fff;border:none;border-radius:var(--radius);padding:8px 18px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s;height:36px}
+.btn-filter:hover{background:#000}
+.btn-clear{background:var(--white);color:var(--gray-600);border:1.5px solid var(--gray-300);border-radius:var(--radius);padding:8px 14px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;height:36px}
+.btn-clear:hover{border-color:var(--gray-500);color:var(--gray-800)}
+
+/* ── TABLE WRAPPER ── */
+.table-card{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden}
+.table-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--gray-200)}
+.table-info{font-size:13px;color:var(--gray-600);font-weight:600}
+.btn-excel{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1.5px solid var(--gray-300);border-radius:var(--radius);padding:6px 14px;font-family:inherit;font-size:12.5px;font-weight:700;color:var(--gray-600);cursor:pointer;transition:all .15s}
+.btn-excel:hover{border-color:var(--success);color:var(--success)}
+
+/* ── TABLE ── */
+.otable{width:100%;border-collapse:collapse;font-size:13px}
+.otable thead th{background:var(--gray-50);padding:10px 12px;text-align:left;font-weight:700;font-size:12px;color:var(--gray-600);border-bottom:1.5px solid var(--gray-200);white-space:nowrap;user-select:none}
+.otable thead th.sortable{cursor:pointer}
+.otable thead th.sortable:hover{color:var(--primary)}
+.otable thead th .sort-icon{margin-left:4px;font-size:10px;opacity:.5}
+.otable thead th.sorted .sort-icon{opacity:1;color:var(--primary)}
+.otable tbody tr{border-bottom:1px solid var(--gray-200);transition:background .1s}
+.otable tbody tr:hover{background:var(--gray-50)}
+.otable tbody tr:last-child{border-bottom:none}
+.otable tbody td{padding:10px 12px;vertical-align:middle}
+.otable .cb{width:36px;text-align:center}
+.otable .col-id{width:90px;font-weight:700;color:var(--gray-800);font-size:12.5px}
+.otable .col-name{min-width:120px;font-weight:600}
+.otable .col-phone{width:100px;font-size:12.5px;color:var(--gray-600)}
+.otable .col-addr{min-width:140px;font-size:12.5px;color:var(--gray-600);max-width:180px}
+.otable .col-date{width:100px;font-size:12.5px;color:var(--gray-600);white-space:nowrap}
+.otable .col-total{width:110px;font-weight:700;text-align:right;white-space:nowrap}
+.otable .col-status{width:110px;text-align:center}
+.otable .col-action{width:160px;text-align:center;white-space:nowrap}
+
+/* checkbox */
+input[type=checkbox]{width:15px;height:15px;accent-color:var(--primary);cursor:pointer}
+
+/* ── STATUS BADGE ── */
+.badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;border:1.5px solid transparent;white-space:nowrap}
+.badge-NEW      {background:#e8f0fe;color:#1a56db;border-color:#b6ccf7}
+.badge-PROCESSING{background:#fff3cd;color:#856404;border-color:#ffe08a}
+.badge-SHIPPING {background:#cff4fc;color:#0a7899;border-color:#9ee8f8}
+.badge-DONE     {background:var(--success-light);color:var(--success);border-color:#a3cfbb}
+.badge-CANCEL   {background:var(--danger-light);color:var(--danger);border-color:#f5c6cb}
+
+/* ── ACTION BUTTONS ── */
+.act-wrap{display:flex;align-items:center;justify-content:center;gap:6px}
+.btn-act{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:4px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .15s;text-decoration:none;white-space:nowrap}
+.btn-view{background:var(--white);border-color:var(--gray-300);color:var(--gray-600)}
+.btn-view:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.btn-edit{background:var(--white);border-color:var(--gray-300);color:var(--gray-600)}
+.btn-edit:hover{border-color:var(--warning);color:var(--warning);background:#fff8f0}
+.btn-del{background:var(--white);border-color:var(--gray-300);color:var(--gray-400)}
+.btn-del:hover{border-color:var(--danger);color:var(--danger);background:var(--danger-light)}
+
+/* ── EMPTY STATE ── */
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray-500)}
+.empty-state i{font-size:40px;margin-bottom:12px;display:block;opacity:.4}
+.empty-state p{font-size:14px;font-weight:600}
+
+/* ── LOADING ── */
+.loading-row td{text-align:center;padding:40px;color:var(--gray-400)}
+.dots{display:inline-flex;gap:5px}
+.dots span{width:7px;height:7px;border-radius:50%;background:var(--gray-400);animation:dotBounce 1s ease-in-out infinite}
+.dots span:nth-child(2){animation-delay:.15s}
+.dots span:nth-child(3){animation-delay:.3s}
+@keyframes dotBounce{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.2);opacity:1}}
+
+/* ── PAGINATION ── */
+.pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:16px}
+.page-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:var(--radius);border:1.5px solid var(--gray-300);background:var(--white);font-family:inherit;font-size:13px;font-weight:700;color:var(--gray-600);cursor:pointer;transition:all .15s}
+.page-btn:hover{border-color:var(--primary);color:var(--primary)}
+.page-btn.active{background:var(--gray-900);border-color:var(--gray-900);color:#fff}
+.page-btn.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+.page-dots{color:var(--gray-400);font-weight:700;padding:0 4px}
+
+/* ── TOAST ── */
+#toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast-item{padding:11px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow);min-width:240px;animation:toastIn .22s ease}
+.toast-item.ok{background:var(--success-light);border:1px solid #a3cfbb;color:var(--success)}
+.toast-item.err{background:var(--danger-light);border:1px solid #f5c6cb;color:var(--danger)}
+@keyframes toastIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+
+/* ── CONFIRM MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:var(--white);border-radius:10px;padding:28px 28px 22px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2);animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-size:16px;font-weight:800;color:var(--gray-900);margin-bottom:8px}
+.modal p{font-size:13.5px;color:var(--gray-600);margin-bottom:22px;line-height:1.6}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.btn-cancel-modal{background:var(--white);border:1.5px solid var(--gray-300);color:var(--gray-600);padding:8px 18px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.btn-cancel-modal:hover{border-color:var(--gray-500)}
+.btn-confirm-del{background:var(--danger);border:none;color:#fff;padding:8px 18px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.btn-confirm-del:hover{background:#b02a37}
+
+@media(max-width:768px){
+  .filter-row{flex-direction:column}
+  .fg-search{min-width:100%}
+  .otable .col-addr,.otable .col-phone{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <a href="/dashboard" class="topbar-brand">🚚 DeliveryMgr</a>
+  <div class="topbar-nav">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/orders" class="active">Đơn hàng</a>
+    <a href="/deliveries">Giao hàng</a>
+    <a href="/customers">Khách hàng</a>
+    <a href="/reports">Báo cáo</a>
+    <a href="/admin">Admin</a>
+  </div>
+</nav>
+
+<div id="toast-wrap"></div>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="overlay" id="deleteOverlay">
+  <div class="modal">
+    <h3>🗑 Xác nhận xoá đơn hàng</h3>
+    <p id="deleteMsg">Bạn có chắc muốn xoá đơn hàng này không? Hành động này không thể hoàn tác.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeDeleteModal()">Huỷ bỏ</button>
+      <button class="btn-confirm-del" id="confirmDelBtn" onclick="confirmDelete()">Xoá</button>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <h1 class="page-title">Danh sách đơn hàng</h1>
+    <a href="/orders/create" class="btn-add">
+      <i class="bi bi-plus-lg"></i> Thêm đơn hàng
+    </a>
+  </div>
+
+  <!-- Filter -->
+  <div class="filter-panel">
+    <div class="filter-label">Bộ lọc &amp; tìm kiếm</div>
+    <div class="filter-row">
+      <div class="fg fg-search">
+        <label>Tìm kiếm</label>
+        <div class="fg-search-wrap">
+          <i class="bi bi-search"></i>
+          <input type="text" id="q" placeholder="Mã đơn, tên khách hàng..." oninput="onSearch()"/>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Trạng thái</label>
+        <select id="filterStatus" onchange="applyFilter()">
+          <option value="">Tất cả</option>
+          <option value="NEW">Chờ xử lý</option>
+          <option value="PROCESSING">Đang xử lý</option>
+          <option value="SHIPPING">Đang giao</option>
+          <option value="DONE">Thành công</option>
+          <option value="CANCEL">Đã huỷ</option>
+        </select>
+      </div>
+      <div class="fg">
+        <label>Từ ngày</label>
+        <input type="date" id="fromDate" onchange="applyFilter()"/>
+      </div>
+      <div class="fg">
+        <label>Đến ngày</label>
+        <input type="date" id="toDate" onchange="applyFilter()"/>
+      </div>
+      <button class="btn-filter" onclick="applyFilter()">
+        <i class="bi bi-funnel"></i> Lọc
+      </button>
+      <button class="btn-clear" onclick="clearFilter()">Xoá lọc</button>
+    </div>
+  </div>
+
+  <!-- Table card -->
+  <div class="table-card">
+    <div class="table-toolbar">
+      <span class="table-info" id="tableInfo">Đang tải...</span>
+      <button class="btn-excel" onclick="exportExcel()">
+        <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+      </button>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table class="otable">
+        <thead>
+          <tr>
+            <th class="cb"><input type="checkbox" id="checkAll" onchange="toggleAll(this)"/></th>
+            <th class="col-id sortable sorted" onclick="sortBy('id')">
+              Mã đơn <i class="bi bi-arrow-down-up sort-icon"></i>
+            </th>
+            <th class="col-name">Khách hàng</th>
+            <th class="col-phone">SĐT</th>
+            <th class="col-addr">Địa chỉ giao</th>
+            <th class="col-date sortable" onclick="sortBy('order_date')">
+              Ngày tạo <i class="bi bi-arrow-down-up sort-icon"></i>
+            </th>
+            <th class="col-total sortable" onclick="sortBy('total_amount')" style="text-align:right">
+              Tổng tiền <i class="bi bi-arrow-down-up sort-icon"></i>
+            </th>
+            <th class="col-status">Trạng thái</th>
+            <th class="col-action">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr class="loading-row">
+            <td colspan="9">
+              <div class="dots"><span></span><span></span><span></span></div>
+              <div style="margin-top:8px;font-size:13px">Đang tải dữ liệu...</div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="pagination"></div>
+  </div>
+
+</div>
+
+<script>
+/* ─── CONFIG ─── */
+const API_BASE = '';   // '' = same origin | 'http://localhost:8080' khi test file trực tiếp
+
+/* ─── STATE ─── */
+let allOrders   = [];   // toàn bộ data từ API
+let filtered    = [];   // sau khi lọc/search
+let currentPage = 1;
+const PAGE_SIZE = 10;
+let sortField   = 'id';
+let sortDir     = 'desc';
+let deleteTargetId = null;
+
+/* ─── STATUS CONFIG ─── */
+const STATUS_MAP = {
+  NEW        : { label: 'Chờ xử lý',  cls: 'badge-NEW'        },
+  PROCESSING : { label: 'Đang xử lý', cls: 'badge-PROCESSING' },
+  SHIPPING   : { label: 'Đang giao',  cls: 'badge-SHIPPING'   },
+  DONE       : { label: 'Thành công', cls: 'badge-DONE'       },
+  CANCEL     : { label: 'Đã huỷ',     cls: 'badge-CANCEL'     },
+};
+
+/* ─── FETCH ─── */
+async function loadOrders() {
+  try {
+    const res  = await fetch(API_BASE + '/api/orders');
+    const data = await res.json();
+    // API trả về array hoặc {message:...} khi rỗng
+    allOrders = Array.isArray(data) ? data : [];
+    applyFilter();
+  } catch(e) {
+    document.getElementById('tbody').innerHTML = `
+      <tr><td colspan="9" style="text-align:center;padding:40px;color:#dc3545">
+        <i class="bi bi-exclamation-triangle" style="font-size:24px;display:block;margin-bottom:8px"></i>
+        Không kết nối được server. Kiểm tra backend đang chạy.
+      </td></tr>`;
+    document.getElementById('tableInfo').textContent = 'Lỗi tải dữ liệu';
+  }
+}
+
+/* ─── FILTER + SEARCH ─── */
+let searchTimer;
+function onSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(applyFilter, 300);
+}
+
+function applyFilter() {
+  const q      = document.getElementById('q').value.trim().toLowerCase();
+  const status = document.getElementById('filterStatus').value;
+  const from   = document.getElementById('fromDate').value;
+  const to     = document.getElementById('toDate').value;
+
+  filtered = allOrders.filter(o => {
+    const matchQ = !q ||
+      ('dh-' + o.id).includes(q) ||
+      (o.customerName || '').toLowerCase().includes(q) ||
+      (o.phone || '').includes(q);
+    const matchStatus = !status || o.status === status;
+    const date = o.orderDate ? o.orderDate.substring(0,10) : '';
+    const matchFrom = !from || date >= from;
+    const matchTo   = !to   || date <= to;
+    return matchQ && matchStatus && matchFrom && matchTo;
+  });
+
+  sortData();
+  currentPage = 1;
+  render();
+}
+
+function clearFilter() {
+  document.getElementById('q').value            = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('fromDate').value     = '';
+  document.getElementById('toDate').value       = '';
+  applyFilter();
+}
+
+/* ─── SORT ─── */
+function sortBy(field) {
+  if (sortField === field) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+  else { sortField = field; sortDir = 'desc'; }
+  document.querySelectorAll('.otable thead th.sorted').forEach(th => th.classList.remove('sorted'));
+  sortData();
+  render();
+}
+
+function sortData() {
+  filtered.sort((a, b) => {
+    let av = a[sortField] ?? 0;
+    let bv = b[sortField] ?? 0;
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+  });
+}
+
+/* ─── RENDER ─── */
+function render() {
+  const total  = filtered.length;
+  const pages  = Math.ceil(total / PAGE_SIZE) || 1;
+  currentPage  = Math.min(currentPage, pages);
+  const start  = (currentPage - 1) * PAGE_SIZE;
+  const slice  = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('tableInfo').textContent =
+    total === 0
+      ? 'Không có đơn hàng nào'
+      : `Hiển thị ${start+1}–${Math.min(start+PAGE_SIZE, total)} / ${total} đơn hàng`;
+
+  if (slice.length === 0) {
+    document.getElementById('tbody').innerHTML = `
+      <tr><td colspan="9">
+        <div class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <p>Không tìm thấy đơn hàng nào</p>
+        </div>
+      </td></tr>`;
+  } else {
+    document.getElementById('tbody').innerHTML = slice.map(o => rowHTML(o)).join('');
+  }
+
+  renderPagination(pages);
+  document.getElementById('checkAll').checked = false;
+}
+
+function rowHTML(o) {
+  const st   = STATUS_MAP[o.status] || { label: o.status, cls: 'badge-NEW' };
+  const date = o.orderDate ? fmtDate(o.orderDate) : '—';
+  const total = o.totalAmount != null ? fmtVND(o.totalAmount) : '—';
+  const addr  = o.address ? truncate(o.address, 30) : '—';
+  return `
+  <tr>
+    <td class="cb"><input type="checkbox" class="row-cb"/></td>
+    <td class="col-id">DH-${o.id}</td>
+    <td class="col-name">${esc(o.customerName || '—')}</td>
+    <td class="col-phone">${esc(o.phone || '—')}</td>
+    <td class="col-addr" title="${esc(o.address||'')}">
+      ${esc(addr)}
+    </td>
+    <td class="col-date">${date}</td>
+    <td class="col-total">${total}</td>
+    <td class="col-status">
+      <span class="badge ${st.cls}">${st.label}</span>
+    </td>
+    <td class="col-action">
+      <div class="act-wrap">
+        <a href="/orders/${o.id}" class="btn-act btn-view">
+          <i class="bi bi-eye"></i> Xem
+        </a>
+        <a href="/orders/${o.id}/edit" class="btn-act btn-edit">
+          <i class="bi bi-pencil"></i> Sửa
+        </a>
+        <button class="btn-act btn-del" onclick="openDeleteModal(${o.id}, '${esc(o.customerName||'')}')">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+/* ─── PAGINATION ─── */
+function renderPagination(pages) {
+  const el = document.getElementById('pagination');
+  if (pages <= 1) { el.innerHTML = ''; return; }
+
+  let html = '';
+  html += `<button class="page-btn ${currentPage===1?'disabled':''}" onclick="goPage(${currentPage-1})">‹ Trước</button>`;
+
+  const show = pageRange(currentPage, pages);
+  let prev = null;
+  show.forEach(p => {
+    if (prev !== null && p - prev > 1) html += `<span class="page-dots">…</span>`;
+    html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    prev = p;
+  });
+
+  html += `<button class="page-btn ${currentPage===pages?'disabled':''}" onclick="goPage(${currentPage+1})">Sau ›</button>`;
+  el.innerHTML = html;
+}
+
+function pageRange(cur, total) {
+  const delta = 2;
+  const range = [];
+  for (let i = Math.max(1, cur-delta); i <= Math.min(total, cur+delta); i++) range.push(i);
+  if (range[0] > 1) range.unshift(1);
+  if (range[range.length-1] < total) range.push(total);
+  return range;
+}
+
+function goPage(p) {
+  const pages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  if (p < 1 || p > pages) return;
+  currentPage = p;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ─── DELETE ─── */
+function openDeleteModal(id, name) {
+  deleteTargetId = id;
+  document.getElementById('deleteMsg').textContent =
+    `Bạn có chắc muốn xoá đơn hàng DH-${id} của "${name}"? Hành động này không thể hoàn tác.`;
+  document.getElementById('deleteOverlay').classList.add('show');
+}
+function closeDeleteModal() {
+  deleteTargetId = null;
+  document.getElementById('deleteOverlay').classList.remove('show');
+}
+async function confirmDelete() {
+  if (!deleteTargetId) return;
+  const id = deleteTargetId;
+  closeDeleteModal();
+  try {
+    const res = await fetch(API_BASE + '/api/orders/' + id, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('✅ Đã xoá đơn hàng DH-' + id, 'ok');
+      allOrders = allOrders.filter(o => o.id !== id);
+      applyFilter();
+    } else {
+      showToast('❌ Xoá thất bại!', 'err');
+    }
+  } catch {
+    showToast('❌ Không kết nối được server!', 'err');
+  }
+}
+
+/* ─── CHECKBOX ─── */
+function toggleAll(el) {
+  document.querySelectorAll('.row-cb').forEach(cb => cb.checked = el.checked);
+}
+
+/* ─── EXPORT EXCEL (placeholder) ─── */
+function exportExcel() {
+  showToast('📊 Tính năng xuất Excel sẽ được cập nhật sau.', 'ok');
+}
+
+/* ─── HELPERS ─── */
+function fmtVND(n) { return new Intl.NumberFormat('vi-VN').format(n) + 'đ'; }
+function fmtDate(s) {
+  try {
+    const d = new Date(s);
+    return d.toLocaleDateString('vi-VN', { day:'2-digit', month:'2-digit', year:'numeric' });
+  } catch { return s; }
+}
+function truncate(s, n) { return s.length > n ? s.slice(0, n) + '…' : s; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function showToast(msg, type) {
+  const w = document.getElementById('toast-wrap');
+  const d = document.createElement('div');
+  d.className = 'toast-item ' + type;
+  d.innerHTML = `<i class="bi bi-${type==='ok'?'check-circle':'exclamation-circle-fill'}"></i> ${msg}`;
+  w.appendChild(d);
+  setTimeout(() => d.remove(), 4000);
+}
+
+/* ─── CLOSE MODAL ON OVERLAY CLICK ─── */
+document.getElementById('deleteOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+/* ─── INIT ─── */
+loadOrders();
+</script>
+</body>
+</html>
