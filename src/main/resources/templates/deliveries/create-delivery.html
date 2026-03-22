@@ -7,140 +7,142 @@
 <body>
 
 <div th:replace="~{fragments/layout :: main('Tạo chuyến giao - DeliveryMgr', ~{::div.content})}">
-
   <div class="content">
 
-    <!-- Page header -->
     <div class="page-hd">
       <div>
         <div class="page-eyebrow">GIAO HÀNG</div>
         <h1 class="page-title">Tạo chuyến giao mới</h1>
-        <div class="page-sub">Chọn đơn hàng và phân công tài xế để tạo chuyến giao.</div>
+        <div class="page-sub">Chọn đơn hàng và điền đầy đủ thông tin tài xế.</div>
       </div>
       <div class="page-actions">
-        <button class="btn btn-default" onclick="window.location.href='/deliveries'">
-          ← Quay lại
-        </button>
+        <button class="btn btn-default" onclick="window.location.href='/deliveries'">← Quay lại</button>
       </div>
     </div>
 
-    <!-- Form layout: 2 cột -->
     <div class="dc-layout">
 
-      <!-- ══ CỘT TRÁI ══ -->
+      <!-- CỘT TRÁI: Chọn đơn hàng -->
       <div>
-
-        <!-- Chọn đơn hàng -->
         <div class="dc-panel">
-          <div class="dc-panel-hd">
-            <span>📦</span> Chọn đơn hàng
-          </div>
+          <div class="dc-panel-hd">📦 Chọn đơn hàng <span class="dc-req">*</span></div>
           <div class="dc-panel-body">
-
-            <!-- Search box -->
             <div class="dc-search-wrap">
-              <span class="dc-search-ico">🔍</span>
-              <input type="text" id="orderSearch"
-                     class="dc-search-input"
+              <span class="dc-ico">🔍</span>
+              <input type="text" id="orderSearch" class="dc-search"
                      placeholder="Tìm theo mã đơn, tên khách hàng..."
                      oninput="filterOrders()"/>
             </div>
-
-            <!-- Loading state -->
             <div id="orderLoading" class="dc-state">
               <div class="dc-dots"><span></span><span></span><span></span></div>
-              <span>Đang tải danh sách đơn hàng...</span>
+              <span>Đang tải đơn hàng...</span>
             </div>
-
-            <!-- Error state -->
-            <div id="orderError" class="dc-state dc-error" style="display:none">
-              ❌ Không tải được dữ liệu. Kiểm tra backend đang chạy.
-            </div>
-
-            <!-- Order list -->
-            <div id="orderList" style="display:none">
+            <div id="orderError"  class="dc-state" style="display:none;color:#dc3545">❌ Không tải được dữ liệu.</div>
+            <div id="orderList"   style="display:none">
               <div class="dc-order-list" id="orderItems"></div>
-              <div id="orderEmpty" class="dc-state" style="display:none">
-                📭 Không tìm thấy đơn hàng nào
-              </div>
+              <div id="orderEmpty" class="dc-state" style="display:none">📭 Không tìm thấy đơn hàng</div>
             </div>
-
+            <div id="errOrder" class="dc-err-msg" style="display:none">⚠ Vui lòng chọn một đơn hàng!</div>
           </div>
         </div>
 
         <!-- Preview đơn đã chọn -->
-        <div class="dc-panel" id="selectedPreview" style="display:none">
-          <div class="dc-panel-hd"><span>✅</span> Đơn hàng đã chọn</div>
-          <div class="dc-panel-body">
-            <div class="dc-preview" id="previewContent"></div>
-          </div>
+        <div class="dc-panel" id="previewPanel" style="display:none">
+          <div class="dc-panel-hd">✅ Đơn hàng đã chọn</div>
+          <div class="dc-panel-body" id="previewContent"></div>
         </div>
-
       </div>
 
-      <!-- ══ CỘT PHẢI ══ -->
+      <!-- CỘT PHẢI: Thông tin giao hàng -->
       <div>
 
-        <!-- Thông tin giao hàng -->
+        <!-- Thông tin tài xế -->
         <div class="dc-panel">
-          <div class="dc-panel-hd"><span>🚚</span> Thông tin giao hàng</div>
+          <div class="dc-panel-hd">🚚 Thông tin tài xế</div>
           <div class="dc-panel-body">
+
             <div class="dc-fg">
-              <label>Tài xế <span class="dc-req">*</span></label>
-              <input type="text" id="shipperName" placeholder="Tên tài xế..."/>
+              <label class="dc-lbl">Chọn tài xế <span class="dc-req">*</span></label>
+              <select id="shipperSelect" class="dc-input" onchange="onShipperChange()">
+                <option value="">-- Đang tải danh sách tài xế... --</option>
+              </select>
+              <div class="dc-err" id="errShipper">Vui lòng chọn tài xế!</div>
             </div>
+
             <div class="dc-fg">
-              <label>Số điện thoại tài xế</label>
-              <input type="tel" id="shipperPhone" placeholder="0xxx xxx xxx"/>
+              <label class="dc-lbl">Số điện thoại tài xế <span class="dc-req">*</span></label>
+              <input type="tel" id="shipperPhone" class="dc-input" placeholder="0xxx xxx xxx"
+                     oninput="clearErr('errPhone',this)"/>
+              <div class="dc-err" id="errPhone">Vui lòng nhập SĐT tài xế!</div>
             </div>
+
             <div class="dc-fg">
-              <label>Biển số xe</label>
-              <input type="text" id="vehicleInfo" placeholder="VD: 59A1-12345"/>
+              <label class="dc-lbl">Biển số xe <span class="dc-req">*</span></label>
+              <input type="text" id="vehicleInfo" class="dc-input" placeholder="VD: 59A1-12345"
+                     oninput="clearErr('errVehicle',this)"/>
+              <div class="dc-err" id="errVehicle">Vui lòng nhập biển số xe!</div>
             </div>
-            <div class="dc-fg">
-              <label>Ngày giao</label>
-              <input type="date" id="deliveryDate"/>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <div class="dc-fg" style="flex:1">
-                <label>Từ giờ</label>
-                <input type="time" id="timeFrom" value="08:00"/>
-              </div>
-              <span style="color:var(--text-2);font-weight:700;padding-top:18px">–</span>
-              <div class="dc-fg" style="flex:1">
-                <label>Đến giờ</label>
-                <input type="time" id="timeTo" value="12:00"/>
-              </div>
-            </div>
-            <div class="dc-fg">
-              <label>Ghi chú</label>
-              <textarea id="deliveryNote" placeholder="Ghi chú cho tài xế..."></textarea>
-            </div>
+
           </div>
         </div>
 
-        <!-- Trạng thái ban đầu -->
+        <!-- Lịch giao -->
         <div class="dc-panel">
-          <div class="dc-panel-hd"><span>🏷</span> Trạng thái ban đầu</div>
+          <div class="dc-panel-hd">📅 Lịch giao hàng</div>
           <div class="dc-panel-body">
-            <select id="initStatus">
-              <option value="PROCESSING">Chờ lấy hàng</option>
-              <option value="SHIPPING">Đang giao ngay</option>
+
+            <div class="dc-fg">
+              <label class="dc-lbl">Ngày giao <span class="dc-req">*</span></label>
+              <input type="date" id="deliveryDate" class="dc-input"
+                     onchange="clearErr('errDate',this)"/>
+              <div class="dc-err" id="errDate">Vui lòng chọn ngày giao!</div>
+            </div>
+
+            <div style="display:flex;gap:8px;align-items:flex-end">
+              <div class="dc-fg" style="flex:1">
+                <label class="dc-lbl">Từ giờ <span class="dc-req">*</span></label>
+                <input type="time" id="timeFrom" class="dc-input" value="08:00"/>
+              </div>
+              <span style="color:var(--text-2);font-weight:700;padding-bottom:10px">–</span>
+              <div class="dc-fg" style="flex:1">
+                <label class="dc-lbl">Đến giờ <span class="dc-req">*</span></label>
+                <input type="time" id="timeTo" class="dc-input" value="12:00"/>
+              </div>
+            </div>
+
+            <div class="dc-fg">
+              <label class="dc-lbl">Ghi chú</label>
+              <textarea id="deliveryNote" class="dc-input" style="min-height:70px;resize:vertical"
+                        placeholder="Ghi chú cho tài xế..."></textarea>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Trạng thái ban đầu — dùng đúng DeliveryStatus enum gốc -->
+        <div class="dc-panel">
+          <div class="dc-panel-hd">🏷 Trạng thái ban đầu</div>
+          <div class="dc-panel-body">
+            <select id="initStatus" class="dc-input">
+              <option value="WAITING">⏳ Chờ lấy hàng</option>
+              <option value="DELIVERING">🚚 Đang giao ngay</option>
             </select>
-            <div class="dc-note">Trạng thái sẽ được cập nhật vào đơn hàng tương ứng.</div>
+            <div style="font-size:11.5px;color:var(--text-2);margin-top:2px">
+              Sẽ đồng bộ vào trạng thái đơn hàng tương ứng.
+            </div>
           </div>
         </div>
 
-        <!-- Action -->
+        <!-- Nút submit -->
         <div class="dc-panel">
           <div class="dc-panel-body" style="display:flex;flex-direction:column;gap:10px">
-            <button class="btn btn-primary dc-btn-submit" id="submitBtn" onclick="submitDelivery()">
-              <span id="submitSpinner" style="display:none">⏳</span>
+            <button class="btn btn-primary" id="submitBtn" onclick="submitDelivery()"
+                    style="width:100%;justify-content:center;padding:11px;font-size:14px">
+              <span id="submitSpinner" style="display:none">⏳ </span>
               <span id="submitLabel">🚀 Tạo chuyến giao</span>
             </button>
-            <button class="btn btn-default" onclick="window.location.href='/deliveries'">
-              Huỷ bỏ
-            </button>
+            <button class="btn btn-default" onclick="window.location.href='/deliveries'"
+                    style="width:100%;justify-content:center">Huỷ bỏ</button>
           </div>
         </div>
 
@@ -150,102 +152,77 @@
   </div>
 </div>
 
-<!-- ── STYLES ── -->
 <style>
-/* Layout 2 cột */
 .dc-layout{display:grid;grid-template-columns:1fr 320px;gap:16px;align-items:start}
-
-/* Panel */
 .dc-panel{background:#fff;border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:16px}
 .dc-panel:last-child{margin-bottom:0}
-.dc-panel-hd{padding:10px 16px;border-bottom:1.5px dashed var(--border);font-size:11.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-2);display:flex;align-items:center;gap:7px}
+.dc-panel-hd{padding:10px 16px;border-bottom:1.5px dashed var(--border);font-size:11.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-2)}
 .dc-panel-body{padding:16px;display:flex;flex-direction:column;gap:12px}
-
-/* Search */
-.dc-search-wrap{position:relative;margin-bottom:4px}
-.dc-search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px}
-.dc-search-input{width:100%;border:1px solid var(--border);border-radius:var(--r);padding:8px 10px 8px 34px;font-family:inherit;font-size:13.5px;color:var(--text-1);outline:none;transition:border-color .15s}
-.dc-search-input:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.1)}
-
-/* State messages */
-.dc-state{text-align:center;padding:28px;color:var(--text-2);font-size:13px;display:flex;align-items:center;justify-content:center;gap:10px}
-.dc-error{color:#dc3545}
+.dc-search-wrap{position:relative}
+.dc-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px}
+.dc-search{width:100%;border:1px solid var(--border);border-radius:var(--r);padding:8px 10px 8px 34px;font-family:inherit;font-size:13.5px;color:var(--text-1);outline:none;transition:border-color .15s}
+.dc-search:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.dc-state{text-align:center;padding:24px;color:var(--text-2);font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px}
 .dc-dots{display:inline-flex;gap:4px}
 .dc-dots span{width:6px;height:6px;border-radius:50%;background:var(--text-3);animation:dcDot 1s ease-in-out infinite}
 .dc-dots span:nth-child(2){animation-delay:.15s}
 .dc-dots span:nth-child(3){animation-delay:.3s}
 @keyframes dcDot{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.2);opacity:1}}
-
-/* Order list */
-.dc-order-list{display:flex;flex-direction:column;gap:6px;max-height:360px;overflow-y:auto;padding-right:2px}
-.dc-order-item{border:1.5px solid var(--border);border-radius:var(--r);padding:10px 14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:12px}
+.dc-order-list{display:flex;flex-direction:column;gap:6px;max-height:340px;overflow-y:auto}
+.dc-order-item{border:1.5px solid var(--border);border-radius:var(--r);padding:10px 14px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:10px}
 .dc-order-item:hover{border-color:#1a56db;background:#f0f5ff}
 .dc-order-item.selected{border-color:#1a56db;background:#e8f0fe}
-.dc-order-item .oi-id{font-size:12px;font-weight:800;color:#1a56db;min-width:60px}
-.dc-order-item .oi-body{flex:1}
-.dc-order-item .oi-name{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:2px}
-.dc-order-item .oi-meta{font-size:12px;color:var(--text-2)}
-.dc-order-item .oi-status{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px}
-.st-NEW       {background:#e8f0fe;color:#1a56db}
-.st-PROCESSING{background:#fff3cd;color:#856404}
-.st-SHIPPING  {background:#cff4fc;color:#0a7899}
-.st-DONE      {background:#d1e7dd;color:#0a5c36}
-.st-CANCEL    {background:#f8d7da;color:#842029}
-
-/* Preview panel */
+.oi-id{font-size:12px;font-weight:800;color:#1a56db;min-width:58px}
+.oi-name{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:2px}
+.oi-meta{font-size:12px;color:var(--text-2)}
+.oi-st{font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.st-NEW{background:#e8f0fe;color:#1a56db}
+.st-CONFIRMED{background:#fff3cd;color:#856404}
+.st-COMPLETED{background:#d1e7dd;color:#0a5c36}
+.st-CANCELLED{background:#f8d7da;color:#842029}
 .dc-preview{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}
-.dc-preview-item{display:flex;flex-direction:column;gap:2px}
-.dc-preview-item.full{grid-column:1/-1}
-.dc-pi-label{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px}
+.dc-pi{display:flex;flex-direction:column;gap:2px}
+.dc-pi.full{grid-column:1/-1}
+.dc-pi-lbl{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.4px}
 .dc-pi-val{font-size:13px;font-weight:600;color:var(--text-1)}
-
-/* Form fields */
 .dc-fg{display:flex;flex-direction:column;gap:4px}
-.dc-fg label{font-size:12.5px;font-weight:700;color:var(--text-1)}
-.dc-req{color:#dc3545;margin-left:2px}
-.dc-fg input,.dc-fg select,.dc-fg textarea{
-  border:1px solid var(--border);border-radius:var(--r);
-  padding:8px 10px;font-family:inherit;font-size:13.5px;
-  color:var(--text-1);outline:none;transition:border-color .15s;
-  background:#fff;width:100%
-}
-.dc-fg input:focus,.dc-fg select:focus,.dc-fg textarea:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.1)}
-.dc-fg input.invalid{border-color:#dc3545!important}
-.dc-fg textarea{resize:vertical;min-height:72px}
-.dc-note{font-size:11.5px;color:var(--text-2);margin-top:2px}
-
-/* Submit button */
-.dc-btn-submit{width:100%;justify-content:center;padding:11px;font-size:14px}
-
+.dc-lbl{font-size:12.5px;font-weight:700;color:var(--text-1)}
+.dc-req{color:#dc3545}
+.dc-input{width:100%;border:1px solid var(--border);border-radius:var(--r);padding:8px 10px;font-family:inherit;font-size:13.5px;color:var(--text-1);outline:none;transition:border-color .15s;background:#fff}
+.dc-input:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.dc-input.invalid{border-color:#dc3545!important;box-shadow:0 0 0 3px rgba(220,53,69,.1)!important}
+/* Lỗi dạng inline dưới field */
+.dc-err{color:#dc3545;font-size:12px;display:none;margin-top:2px}
+.dc-err.show{display:block}
+/* Lỗi chọn đơn hàng */
+.dc-err-msg{color:#dc3545;font-size:12.5px;font-weight:600;padding:8px 12px;background:#fff5f5;border:1px solid #f5c6cb;border-radius:var(--r)}
 @media(max-width:860px){.dc-layout{grid-template-columns:1fr}}
 </style>
 
 <script>
-/* ── CONFIG ── */
-const API_BASE = '';  // đổi thành 'http://localhost:8080' khi test file trực tiếp
+const API_BASE = '';
 
-/* ── STATE ── */
-let allOrders      = [];
-let filteredOrders = [];
-let selectedOrder  = null;
+let allOrders = [], filteredOrders = [], selectedOrder = null, shipperList = [];
 
-const STATUS_LABEL = {
-  NEW:'Chờ xử lý', PROCESSING:'Đang xử lý',
-  SHIPPING:'Đang giao', DONE:'Hoàn thành', CANCEL:'Đã huỷ'
+// Dùng đúng enum OrderStatus gốc: NEW, CONFIRMED, COMPLETED, CANCELLED
+const ORDER_STATUS_LABEL = {
+  NEW      : 'Mới tạo',
+  CONFIRMED: 'Đã xác nhận',
+  COMPLETED: 'Hoàn thành',
+  CANCELLED: 'Đã huỷ',
 };
 
-/* ── LOAD ORDERS (chỉ lấy đơn chưa hoàn thành/huỷ) ── */
+/* ── LOAD ── */
 async function loadOrders() {
   try {
     const res  = await fetch(API_BASE + '/api/orders');
     const data = await res.json();
+    // Chỉ lấy đơn chưa hoàn thành hoặc huỷ
     allOrders = Array.isArray(data)
-      ? data.filter(o => o.status !== 'DONE' && o.status !== 'CANCEL')
+      ? data.filter(o => o.status !== 'COMPLETED' && o.status !== 'CANCELLED')
       : [];
-
     document.getElementById('orderLoading').style.display = 'none';
     document.getElementById('orderList').style.display    = 'block';
-
     filteredOrders = [...allOrders];
     renderOrders();
   } catch {
@@ -254,128 +231,122 @@ async function loadOrders() {
   }
 }
 
-/* ── RENDER ORDER LIST ── */
-function renderOrders() {
-  const container = document.getElementById('orderItems');
-  const empty     = document.getElementById('orderEmpty');
-
-  if (filteredOrders.length === 0) {
-    container.innerHTML = '';
-    empty.style.display = 'flex';
-    return;
+async function loadShippers() {
+  try {
+    const res = await fetch(API_BASE + '/api/deliveries/shippers');
+    shipperList = await res.json();
+    const sel = document.getElementById('shipperSelect');
+    if (shipperList.length) {
+      sel.innerHTML = `<option value="">-- Chọn tài xế --</option>` +
+        shipperList.map(s =>
+          `<option value="${esc(s.fullName)}" data-phone="${esc(s.email||'')}">`+
+          `${esc(s.fullName)} (${esc(s.username)})</option>`
+        ).join('');
+    } else {
+      sel.innerHTML = `<option value="">-- Chưa có user nào có role SHIPPER --</option>`;
+    }
+  } catch {
+    document.getElementById('shipperSelect').innerHTML =
+      `<option value="">-- Lỗi tải danh sách tài xế --</option>`;
   }
-  empty.style.display = 'none';
+}
 
-  container.innerHTML = filteredOrders.map(o => `
-    <div class="dc-order-item ${selectedOrder?.id === o.id ? 'selected' : ''}"
-         onclick="selectOrder(${o.id})">
+/* ── RENDER ORDERS ── */
+function renderOrders() {
+  const items = document.getElementById('orderItems');
+  const empty = document.getElementById('orderEmpty');
+  if (!filteredOrders.length) { items.innerHTML=''; empty.style.display='flex'; return; }
+  empty.style.display = 'none';
+  items.innerHTML = filteredOrders.map(o => `
+    <div class="dc-order-item ${selectedOrder?.id===o.id?'selected':''}" onclick="selectOrder(${o.id})">
       <span class="oi-id">DH-${o.id}</span>
-      <div class="oi-body">
-        <div class="oi-name">${esc(o.customerName || '—')}</div>
-        <div class="oi-meta">${esc(o.phone || '')} · ${esc(truncate(o.address || '', 30))}</div>
+      <div style="flex:1">
+        <div class="oi-name">${esc(o.customerName||'—')}</div>
+        <div class="oi-meta">${esc(o.phone||'')} · ${esc(truncate(o.address||'',28))}</div>
       </div>
-      <span class="oi-status st-${o.status}">${STATUS_LABEL[o.status] || o.status}</span>
+      <span class="oi-st st-${o.status}">${ORDER_STATUS_LABEL[o.status]||o.status}</span>
     </div>`).join('');
 }
 
-/* ── FILTER ── */
 function filterOrders() {
   const q = document.getElementById('orderSearch').value.trim().toLowerCase();
   filteredOrders = q
     ? allOrders.filter(o =>
-        ('dh-' + o.id).includes(q) ||
-        (o.customerName || '').toLowerCase().includes(q) ||
-        (o.phone || '').includes(q))
+        ('dh-'+o.id).includes(q) ||
+        (o.customerName||'').toLowerCase().includes(q) ||
+        (o.phone||'').includes(q))
     : [...allOrders];
   renderOrders();
 }
 
-/* ── SELECT ORDER ── */
 function selectOrder(id) {
   selectedOrder = allOrders.find(o => o.id === id) || null;
-  renderOrders(); // cập nhật highlight
+  document.getElementById('errOrder').style.display = 'none';
+  renderOrders();
 
-  const preview = document.getElementById('selectedPreview');
-  const content = document.getElementById('previewContent');
-  if (!selectedOrder) { preview.style.display = 'none'; return; }
+  const panel = document.getElementById('previewPanel');
+  const cont  = document.getElementById('previewContent');
+  if (!selectedOrder) { panel.style.display='none'; return; }
 
-  preview.style.display = 'block';
-  content.innerHTML = `
-    <div class="dc-preview-item">
-      <span class="dc-pi-label">Mã đơn</span>
-      <span class="dc-pi-val">DH-${selectedOrder.id}</span>
-    </div>
-    <div class="dc-preview-item">
-      <span class="dc-pi-label">Trạng thái</span>
-      <span class="dc-pi-val">${STATUS_LABEL[selectedOrder.status] || selectedOrder.status}</span>
-    </div>
-    <div class="dc-preview-item">
-      <span class="dc-pi-label">Khách hàng</span>
-      <span class="dc-pi-val">${esc(selectedOrder.customerName || '—')}</span>
-    </div>
-    <div class="dc-preview-item">
-      <span class="dc-pi-label">Số điện thoại</span>
-      <span class="dc-pi-val">${esc(selectedOrder.phone || '—')}</span>
-    </div>
-    <div class="dc-preview-item full">
-      <span class="dc-pi-label">Địa chỉ giao</span>
-      <span class="dc-pi-val">${esc(selectedOrder.address || '—')}</span>
-    </div>
-    <div class="dc-preview-item">
-      <span class="dc-pi-label">Tổng tiền</span>
-      <span class="dc-pi-val">${fmt(selectedOrder.totalAmount)}</span>
-    </div>
-    <div class="dc-preview-item">
-      <span class="dc-pi-label">Thanh toán</span>
-      <span class="dc-pi-val">${esc(selectedOrder.paymentMethod || '—')}</span>
+  panel.style.display = 'block';
+  cont.innerHTML = `
+    <div class="dc-preview">
+      <div class="dc-pi"><span class="dc-pi-lbl">Mã đơn</span><span class="dc-pi-val">DH-${selectedOrder.id}</span></div>
+      <div class="dc-pi"><span class="dc-pi-lbl">Trạng thái</span><span class="dc-pi-val">${ORDER_STATUS_LABEL[selectedOrder.status]||selectedOrder.status}</span></div>
+      <div class="dc-pi"><span class="dc-pi-lbl">Khách hàng</span><span class="dc-pi-val">${esc(selectedOrder.customerName||'—')}</span></div>
+      <div class="dc-pi"><span class="dc-pi-lbl">Điện thoại</span><span class="dc-pi-val">${esc(selectedOrder.phone||'—')}</span></div>
+      <div class="dc-pi full"><span class="dc-pi-lbl">Địa chỉ</span><span class="dc-pi-val">${esc(selectedOrder.address||'—')}</span></div>
+      <div class="dc-pi"><span class="dc-pi-lbl">Tổng tiền</span><span class="dc-pi-val">${fmt(selectedOrder.totalAmount)}</span></div>
+      <div class="dc-pi"><span class="dc-pi-lbl">Thanh toán</span><span class="dc-pi-val">${esc(selectedOrder.paymentMethod||'—')}</span></div>
     </div>`;
 
-  // Tự điền địa chỉ và ghi chú nếu đơn có sẵn
-  if (selectedOrder.deliveryNote && !document.getElementById('deliveryNote').value) {
+  // Tự điền ghi chú từ đơn hàng nếu chưa điền
+  if (selectedOrder.deliveryNote && !document.getElementById('deliveryNote').value)
     document.getElementById('deliveryNote').value = selectedOrder.deliveryNote;
-  }
-  if (selectedOrder.expectedTime) {
-    parseExpectedTime(selectedOrder.expectedTime);
-  }
-  if (selectedOrder.shipperName && !document.getElementById('shipperName').value) {
-    document.getElementById('shipperName').value = selectedOrder.shipperName;
-  }
 }
 
-/* ── PARSE expectedTime → date + timeFrom + timeTo ── */
-function parseExpectedTime(s) {
-  if (!s) return;
-  const parts = s.split(' ');
-  if (parts.length >= 3 && parts[0].includes('-')) {
-    document.getElementById('deliveryDate').value = parts[0];
-    document.getElementById('timeFrom').value     = parts[1];
-    document.getElementById('timeTo').value       = (parts[3] || '12:00');
-  } else {
-    const times = s.split('–').map(x => x.trim());
-    document.getElementById('timeFrom').value = times[0] || '08:00';
-    document.getElementById('timeTo').value   = times[1] || '12:00';
-  }
+/* ── CHỌN SHIPPER → tự điền SĐT nếu có ── */
+function onShipperChange() {
+  const sel = document.getElementById('shipperSelect');
+  clearErr('errShipper', sel);
 }
 
 /* ── VALIDATE ── */
 function validate() {
   let ok = true;
+
+  // 1. Phải chọn đơn hàng
   if (!selectedOrder) {
-    showToast('Vui lòng chọn đơn hàng!', 'error');
-    return false;
-  }
-  const shipperEl = document.getElementById('shipperName');
-  if (!shipperEl.value.trim()) {
-    shipperEl.classList.add('invalid');
-    showToast('Vui lòng nhập tên tài xế!', 'error');
+    document.getElementById('errOrder').style.display = 'block';
     ok = false;
-  } else {
-    shipperEl.classList.remove('invalid');
   }
+
+  // 2. Các field bắt buộc bên phải
+  const fields = [
+    { id: 'shipperSelect', errId: 'errShipper' },
+    { id: 'shipperPhone',  errId: 'errPhone'   },
+    { id: 'vehicleInfo',   errId: 'errVehicle' },
+    { id: 'deliveryDate',  errId: 'errDate'    },
+  ];
+  fields.forEach(({ id, errId }) => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) {
+      el.classList.add('invalid');
+      document.getElementById(errId).classList.add('show');
+      ok = false;
+    }
+  });
+
+  if (!ok) showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)', 'error');
   return ok;
 }
 
-/* ── SUBMIT ── gọi PUT /api/orders/{id} để cập nhật thông tin giao hàng ── */
+function clearErr(errId, el) {
+  el?.classList.remove('invalid');
+  document.getElementById(errId)?.classList.remove('show');
+}
+
+/* ── SUBMIT → POST /api/deliveries ── */
 async function submitDelivery() {
   if (!validate()) return;
 
@@ -384,51 +355,46 @@ async function submitDelivery() {
   const dd = document.getElementById('deliveryDate').value;
 
   const payload = {
-    ...selectedOrder,
-    shipperName  : document.getElementById('shipperName').value.trim(),
-    deliveryNote : document.getElementById('deliveryNote').value.trim(),
-    expectedTime : dd ? `${dd} ${tf} – ${tt}` : `${tf} – ${tt}`,
+    orderId      : selectedOrder.id,
+    shipperName  : document.getElementById('shipperSelect').value,
+    shipperPhone : document.getElementById('shipperPhone').value.trim(),
+    vehicleInfo  : document.getElementById('vehicleInfo').value.trim(),
+    expectedTime : `${dd} ${tf} – ${tt}`,
+    note         : document.getElementById('deliveryNote').value.trim(),
+    // Dùng đúng enum DeliveryStatus: WAITING hoặc DELIVERING
     status       : document.getElementById('initStatus').value,
   };
 
   setLoading(true);
   try {
-    const res  = await fetch(API_BASE + '/api/orders/' + selectedOrder.id, {
-      method : 'PUT',
+    const res  = await fetch(API_BASE + '/api/deliveries', {
+      method : 'POST',
       headers: { 'Content-Type': 'application/json' },
       body   : JSON.stringify(payload)
     });
     const data = await res.json().catch(() => ({}));
-
-    if (res.ok) {
+    if (res.status === 201 || res.ok) {
       showToast('✅ Tạo chuyến giao thành công!', 'success');
-      setTimeout(() => window.location.href = '/deliveries', 1600);
+      setTimeout(() => window.location.href = '/deliveries', 1500);
     } else {
       showToast('❌ ' + (data.message || 'Tạo thất bại!'), 'error');
     }
   } catch {
     showToast('❌ Không kết nối được server!', 'error');
-  } finally {
-    setLoading(false);
-  }
+  } finally { setLoading(false); }
 }
 
-/* ── HELPERS ── */
 function setLoading(on) {
-  document.getElementById('submitBtn').disabled       = on;
+  document.getElementById('submitBtn').disabled        = on;
   document.getElementById('submitSpinner').style.display = on ? 'inline' : 'none';
-  document.getElementById('submitLabel').textContent  = on ? 'Đang xử lý...' : '🚀 Tạo chuyến giao';
+  document.getElementById('submitLabel').textContent   = on ? 'Đang xử lý...' : '🚀 Tạo chuyến giao';
 }
-function fmt(n)      { return n != null ? new Intl.NumberFormat('vi-VN').format(n) + 'đ' : '—'; }
-function esc(s)      { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function truncate(s,n){ return s.length > n ? s.slice(0,n)+'…' : s; }
 
-/* ── XOÁ INVALID KHI GÕ ── */
-document.getElementById('shipperName')
-  ?.addEventListener('input', function(){ this.classList.remove('invalid'); });
+function fmt(n)       { return n != null ? new Intl.NumberFormat('vi-VN').format(n)+'đ' : '—'; }
+function esc(s)       { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function truncate(s,n){ return s && s.length > n ? s.slice(0,n)+'…' : (s||''); }
 
-/* ── INIT ── */
-loadOrders();
+Promise.all([loadOrders(), loadShippers()]);
 </script>
 
 </body>

@@ -329,8 +329,10 @@ textarea{resize:vertical;min-height:72px}
       <div class="panel">
         <div class="panel-header">Phân công tài xế</div>
         <div class="panel-body">
-          <input type="text" id="shipperName" placeholder="Tên tài xế..." oninput="markChanged('shipperName','Tài xế giao hàng')"/>
-          <div class="note-text">Để trống nếu chưa phân công</div>
+          <select id="shipperName" onchange="markChanged('shipperName','Tài xế giao hàng')">
+            <option value="">-- Đang tải danh sách tài xế... --</option>
+          </select>
+          <div class="note-text">Danh sách tài xế có role SHIPPER trong hệ thống</div>
         </div>
       </div>
 
@@ -396,6 +398,24 @@ let originalData  = null;   // data gốc từ API (để so sánh thay đổi &
 let changedFields = new Set();
 let rid           = 0;
 
+/* ─── LOAD SHIPPERS ─── */
+async function loadShippers(selectedName = '') {
+  try {
+    const res  = await fetch(API_BASE + '/api/deliveries/shippers');
+    const list = await res.json();
+    const sel  = document.getElementById('shipperName');
+    sel.innerHTML = `<option value="">-- Chưa phân công --</option>` +
+      (Array.isArray(list) ? list : []).map(s =>
+        `<option value="${esc(s.fullName)}" ${s.fullName === selectedName ? 'selected' : ''}>
+           ${esc(s.fullName)} (${esc(s.username)})
+         </option>`
+      ).join('');
+  } catch {
+    document.getElementById('shipperName').innerHTML =
+      `<option value="">-- Không tải được danh sách --</option>`;
+  }
+}
+
 /* ─── LOAD DATA TỪ API ─── */
 async function loadOrder() {
   if (!ORDER_ID) {
@@ -436,8 +456,9 @@ function fillForm(data) {
   setValue('deliveryNote', data.deliveryNote);
   setValue('status',       data.status);
   setValue('paymentMethod',data.paymentMethod);
-  setValue('shipperName',  data.shipperName);
   setValue('shippingFee',  data.shippingFee ?? 0);
+  // Tải danh sách shipper rồi set selected = tài xế hiện tại
+  loadShippers(data.shipperName || '');
 
   document.getElementById('paid').checked = (data.paymentStatus === 'Đã thanh toán' || data.paymentStatus === 'PAID');
 

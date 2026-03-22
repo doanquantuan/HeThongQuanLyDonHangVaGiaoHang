@@ -5,7 +5,13 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 import vn.com.entity.User;
 
+import java.util.List;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByUsername(String username);
+ // Lấy danh sách user theo role (VD: "SHIPPER")
+    List<User> findByRole(String role);
+ 
+    // Lấy shipper đang active
+    List<User> findByRoleAndIsActive(String role, Boolean isActive);
 }
