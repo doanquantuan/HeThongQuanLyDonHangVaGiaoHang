@@ -3,10 +3,10 @@ POST http://localhost:8080/api/orders
 Content-Type: application/json
 
 {
-  "customerName": "Nguyễn Văn A",
-  "phone": "0901234567",
-  "email": "nguyenvana@example.com",
-  "address": "123 Đường Lê Lợi, Phường Bến Thành, Quận 1, TP.HCM",
+  "customerName": "Quang Quang",
+  "phone": "4651131331",
+  "email": "quangquang@example.com",
+  "address": "185 Đường Lê Lợi, Phường Bến Thành, Quận 1, TP.HCM",
   "paymentMethod": "COD",
   "paymentStatus": "UNPAID",
   "deliveryNote": "Giao vào giờ hành chính, nhớ gọi trước khi giao",
