@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chi tiết đơn hàng – DeliveryMgr</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+<style>
+:root{
+  --white:#fff;
+  --gray-50:#f8f9fa;
+  --gray-100:#f1f3f5;
+  --gray-200:#e9ecef;
+  --gray-300:#dee2e6;
+  --gray-400:#ced4da;
+  --gray-500:#adb5bd;
+  --gray-600:#6c757d;
+  --gray-700:#495057;
+  --gray-800:#343a40;
+  --gray-900:#212529;
+  --primary:#1a56db;
+  --primary-light:#e8f0fe;
+  --danger:#dc3545;
+  --danger-light:#fff5f5;
+  --success:#198754;
+  --success-light:#d1e7dd;
+  --warning:#fd7e14;
+  --warning-light:#fff3cd;
+  --info:#0a7899;
+  --info-light:#cff4fc;
+  --radius:6px;
+  --shadow:0 2px 8px rgba(0,0,0,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--gray-100);color:var(--gray-800);font-size:14px;min-height:100vh}
+
+/* ── TOPBAR ── */
+.topbar{background:var(--gray-900);color:#fff;display:flex;align-items:center;height:48px;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.topbar-brand{display:flex;align-items:center;gap:8px;padding:0 20px;height:100%;font-weight:800;font-size:15px;border-right:1px solid rgba(255,255,255,.12);white-space:nowrap;text-decoration:none;color:#fff}
+.topbar-nav{display:flex;height:100%}
+.topbar-nav a{display:flex;align-items:center;padding:0 16px;color:rgba(255,255,255,.65);font-size:13.5px;font-weight:600;text-decoration:none;height:100%;transition:all .15s;border-bottom:2px solid transparent;white-space:nowrap}
+.topbar-nav a:hover{color:#fff;background:rgba(255,255,255,.06)}
+.topbar-nav a.active{color:#fff;border-bottom-color:var(--primary)}
+
+/* ── CONTENT ── */
+.content{max-width:1160px;margin:0 auto;padding:22px 20px 60px}
+
+/* ── BREADCRUMB ── */
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--gray-500);margin-bottom:8px}
+.breadcrumb a{color:var(--gray-600);text-decoration:none}
+.breadcrumb a:hover{color:var(--primary)}
+
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+.page-header-left{display:flex;flex-direction:column;gap:8px}
+.page-title{font-size:24px;font-weight:800;color:var(--gray-900)}
+.page-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* ── BADGE ── */
+.badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid transparent;white-space:nowrap}
+.badge-NEW      {background:#e8f0fe;color:#1a56db;border-color:#b6ccf7}
+.badge-PROCESSING{background:var(--warning-light);color:#856404;border-color:#ffe08a}
+.badge-SHIPPING {background:var(--info-light);color:var(--info);border-color:#9ee8f8}
+.badge-DONE     {background:var(--success-light);color:var(--success);border-color:#a3cfbb}
+.badge-CANCEL   {background:var(--danger-light);color:var(--danger);border-color:#f5c6cb}
+.badge-pay-pending{background:var(--warning-light);color:#856404;border-color:#ffe08a;font-size:11.5px}
+.badge-pay-done   {background:var(--success-light);color:var(--success);border-color:#a3cfbb;font-size:11.5px}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;border:none;text-decoration:none;white-space:nowrap}
+.btn-outline{background:var(--white);border:1.5px solid var(--gray-400);color:var(--gray-700)}
+.btn-outline:hover{border-color:var(--gray-600);color:var(--gray-900)}
+.btn-danger-outline{background:var(--white);border:1.5px solid var(--danger);color:var(--danger)}
+.btn-danger-outline:hover{background:var(--danger-light)}
+.btn-dark{background:var(--gray-900);border:1.5px solid var(--gray-900);color:#fff}
+.btn-dark:hover{background:#000}
+.btn-primary{background:var(--primary);border:1.5px solid var(--primary);color:#fff}
+.btn-primary:hover{background:#1242a8}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed}
+.btn-secondary{background:var(--gray-200);border:1.5px solid var(--gray-300);color:var(--gray-700)}
+.btn-secondary:hover{background:var(--gray-300)}
+.btn-block{width:100%;justify-content:center;padding:10px}
+
+/* ── LAYOUT ── */
+.detail-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+
+/* ── PANEL ── */
+.panel{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.panel:last-child{margin-bottom:0}
+.panel-header{padding:10px 16px;border-bottom:1.5px dashed var(--gray-200);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray-500)}
+.panel-body{padding:16px}
+
+/* ── INFO GRID ── */
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
+.info-item{display:flex;flex-direction:column;gap:3px}
+.info-item.full{grid-column:1/-1}
+.info-label{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px}
+.info-value{font-size:13.5px;color:var(--gray-800);font-weight:600;line-height:1.5}
+
+/* ── PRODUCTS TABLE ── */
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable thead th{background:var(--gray-50);padding:9px 12px;text-align:left;font-weight:700;font-size:12px;color:var(--gray-600);border-bottom:1.5px solid var(--gray-200)}
+.ptable thead th.right{text-align:right}
+.ptable tbody tr{border-bottom:1px solid var(--gray-200)}
+.ptable tbody tr:last-child{border-bottom:none}
+.ptable tbody td{padding:10px 12px;vertical-align:middle;font-size:13px}
+.ptable tbody td.right{text-align:right;font-weight:600}
+.ptable tbody td.no{color:var(--gray-500);font-size:12px}
+
+/* ── SUMMARY ── */
+.summary{margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)}
+.srow{display:flex;justify-content:space-between;font-size:13px;color:var(--gray-600);margin-bottom:6px}
+.srow span:last-child{font-weight:600;color:var(--gray-700)}
+.stotal{display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:var(--gray-900);border-top:2px solid var(--gray-300);padding-top:10px;margin-top:6px}
+
+/* ── TIMELINE ── */
+.timeline{display:flex;flex-direction:column;gap:0;padding:4px 0}
+.tl-item{display:flex;gap:12px;position:relative}
+.tl-item:not(:last-child) .tl-line{position:absolute;left:9px;top:22px;width:2px;height:calc(100% + 2px);background:var(--gray-200);z-index:0}
+.tl-item.done:not(:last-child) .tl-line{background:var(--gray-800)}
+.tl-dot-wrap{position:relative;z-index:1;flex-shrink:0;width:20px;display:flex;justify-content:center;padding-top:2px}
+.tl-dot{width:14px;height:14px;border-radius:50%;border:2.5px solid var(--gray-300);background:var(--white);flex-shrink:0}
+.tl-dot.done{background:var(--gray-900);border-color:var(--gray-900)}
+.tl-dot.active{background:var(--white);border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.15)}
+.tl-content{padding-bottom:18px;flex:1}
+.tl-title{font-size:13px;font-weight:700;color:var(--gray-700);margin-bottom:2px}
+.tl-title.active{color:var(--primary)}
+.tl-title.pending{color:var(--gray-400)}
+.tl-time{font-size:11.5px;color:var(--gray-500)}
+
+/* ── SELECT + FORM ── */
+select,input[type=text]{width:100%;border:1px solid var(--gray-400);border-radius:var(--radius);padding:8px 10px;font-family:inherit;font-size:13px;color:var(--gray-800);background:var(--white);outline:none;transition:border-color .15s}
+select:focus,input[type=text]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+
+/* ── SHIPPER CARD ── */
+.shipper-card{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.shipper-avatar{width:42px;height:42px;border-radius:50%;background:var(--gray-200);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--gray-600);flex-shrink:0}
+.shipper-info{flex:1}
+.shipper-name{font-size:13.5px;font-weight:700;color:var(--gray-800)}
+.shipper-phone{font-size:12.5px;color:var(--gray-500);margin-top:1px}
+.shipper-vehicle{font-size:12px;color:var(--gray-500);margin-top:6px;padding-top:8px;border-top:1px solid var(--gray-200)}
+
+/* ── PAYMENT ── */
+.pay-method{font-size:13.5px;font-weight:600;color:var(--gray-800);margin-bottom:8px}
+.pay-status-row{display:flex;align-items:center;gap:8px}
+.pay-label{font-size:13px;color:var(--gray-600)}
+
+/* ── LOADING / ERROR ── */
+.state-box{text-align:center;padding:60px 20px;color:var(--gray-400)}
+.state-box i{font-size:36px;display:block;margin-bottom:10px;opacity:.5}
+.state-box p{font-size:13.5px;font-weight:600}
+
+/* ── TOAST ── */
+#toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast-item{padding:11px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow);min-width:240px;animation:toastIn .22s ease}
+.toast-item.ok{background:var(--success-light);border:1px solid #a3cfbb;color:var(--success)}
+.toast-item.err{background:var(--danger-light);border:1px solid #f5c6cb;color:var(--danger)}
+@keyframes toastIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+
+/* ── CONFIRM MODAL ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:500;display:none;align-items:center;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:var(--white);border-radius:10px;padding:28px 28px 22px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2);animation:modalIn .2s ease}
+@keyframes modalIn{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-size:16px;font-weight:800;color:var(--gray-900);margin-bottom:8px}
+.modal p{font-size:13.5px;color:var(--gray-600);margin-bottom:22px;line-height:1.6}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.btn-cancel-m{background:var(--white);border:1.5px solid var(--gray-300);color:var(--gray-600);padding:8px 18px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.btn-confirm-del{background:var(--danger);border:none;color:#fff;padding:8px 18px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.btn-confirm-del:hover{background:#b02a37}
+
+/* ── SPINNER ── */
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+@media(max-width:860px){
+  .detail-layout{grid-template-columns:1fr}
+  .info-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<nav class="topbar">
+  <a href="/dashboard" class="topbar-brand">🚚 DeliveryMgr</a>
+  <div class="topbar-nav">
+    <a href="/dashboard">Dashboard</a>
+    <a href="/orders" class="active">Đơn hàng</a>
+    <a href="/deliveries">Giao hàng</a>
+    <a href="/admin">Admin</a>
+  </div>
+</nav>
+
+<div id="toast-wrap"></div>
+
+<!-- DELETE MODAL -->
+<div class="overlay" id="delOverlay">
+  <div class="modal">
+    <h3>🗑 Xác nhận xoá đơn hàng</h3>
+    <p id="delMsg">Bạn có chắc muốn xoá đơn hàng này không? Hành động này không thể hoàn tác.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel-m" onclick="closeDelModal()">Huỷ bỏ</button>
+      <button class="btn-confirm-del" onclick="confirmDelete()">Xoá đơn</button>
+    </div>
+  </div>
+</div>
+
+<div class="content" id="mainContent">
+  <!-- Sẽ được render bởi JS -->
+  <div class="state-box">
+    <i class="bi bi-arrow-repeat" style="animation:spin 1s linear infinite"></i>
+    <p>Đang tải dữ liệu...</p>
+  </div>
+</div>
+
+<script>
+/* ─── CONFIG ───────────────────────────────────────────
+   Khi chạy qua Spring Boot:  const API_BASE = '';
+   Khi test file trực tiếp:   const API_BASE = 'http://localhost:8080';
+──────────────────────────────────────────────────────── */
+const API_BASE = '';
+
+/* ─── LẤY ID TỪ URL ─── */
+// URL dạng: /orders/5  hoặc  order-detail.html?id=5
+function getOrderId() {
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const idx   = parts.indexOf('orders');
+  if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
+  return new URLSearchParams(window.location.search).get('id');
+}
+
+const ORDER_ID = getOrderId();
+
+/* ─── STATUS CONFIG ─── */
+const STATUS_MAP = {
+  NEW        : { label: 'Chờ xử lý',  cls: 'badge-NEW',        step: 0 },
+  PROCESSING : { label: 'Đang xử lý', cls: 'badge-PROCESSING', step: 1 },
+  SHIPPING   : { label: 'Đang giao',  cls: 'badge-SHIPPING',   step: 2 },
+  DONE       : { label: 'Thành công', cls: 'badge-DONE',       step: 3 },
+  CANCEL     : { label: 'Đã huỷ',     cls: 'badge-CANCEL',     step: -1 },
+};
+
+const TIMELINE_STEPS = [
+  { key: 'NEW',        label: 'Đơn hàng tạo'     },
+  { key: 'PROCESSING', label: 'Đã xác nhận'       },
+  { key: 'SHIPPING',   label: 'Đang giao hàng'    },
+  { key: 'DONE',       label: 'Giao thành công'   },
+];
+
+let orderData = null;
+
+/* ─── LOAD ─── */
+async function loadOrder() {
+  if (!ORDER_ID) {
+    renderError('Không tìm thấy ID đơn hàng trong URL.');
+    return;
+  }
+  try {
+    const res  = await fetch(API_BASE + '/api/orders/' + ORDER_ID);
+    if (!res.ok) throw new Error('not_found');
+    const data = await res.json();
+    if (data.message) throw new Error(data.message);
+    orderData = data;
+    renderPage(data);
+  } catch(e) {
+    renderError('Không tìm thấy đơn hàng ID: ' + ORDER_ID + '. Kiểm tra backend đang chạy.');
+  }
+}
+
+/* ─── RENDER FULL PAGE ─── */
+function renderPage(o) {
+  const st      = STATUS_MAP[o.status] || { label: o.status, cls: 'badge-NEW', step: 0 };
+  const curStep = st.step;
+  const details = Array.isArray(o.orderDetails) ? o.orderDetails : [];
+
+  // tính toán tiền
+  let subtotal = 0;
+  details.forEach(d => subtotal += (d.quantity || 0) * (d.price || 0));
+  const ship     = o.shippingFee  || 0;
+  const discount = o.discount     || 0;
+  const total    = o.totalAmount  != null ? o.totalAmount : subtotal + ship - discount;
+
+  // initials shipper
+  const shipperName  = o.shipperName || o.delivery?.shipperName || '';
+  const shipperPhone = o.delivery?.shipperPhone || '';
+  const vehicle      = o.delivery?.vehicleInfo  || '';
+  const initials     = shipperName ? shipperName.split(' ').map(w=>w[0]).slice(-2).join('').toUpperCase() : '';
+
+  // ngày tạo
+  const orderDate = o.orderDate ? fmtDateTime(o.orderDate) : '—';
+
+  document.getElementById('mainContent').innerHTML = `
+  <!-- Breadcrumb -->
+  <div class="breadcrumb">
+    <a href="/orders">Đơn hàng</a>
+    <i class="bi bi-chevron-right" style="font-size:10px"></i>
+    <span>DH-${o.id}</span>
+  </div>
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-header-left">
+      <h1 class="page-title">Chi tiết đơn hàng #DH-${o.id}</h1>
+      <span class="badge ${st.cls}">${st.label}</span>
+    </div>
+    <div class="page-actions">
+      <a href="/orders/${o.id}/edit" class="btn btn-outline">
+        <i class="bi bi-pencil"></i> Chỉnh sửa
+      </a>
+      <button class="btn btn-danger-outline" onclick="openDelModal(${o.id})">
+        <i class="bi bi-trash"></i> Xoá đơn
+      </button>
+      <button class="btn btn-dark" onclick="printOrder()">
+        <i class="bi bi-printer"></i> In phiếu giao
+      </button>
+    </div>
+  </div>
+
+  <div class="detail-layout">
+
+    <!-- ══════ CỘT TRÁI ══════ -->
+    <div>
+
+      <!-- Thông tin khách hàng -->
+      <div class="panel">
+        <div class="panel-header">Thông tin khách hàng</div>
+        <div class="panel-body">
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">Họ tên</span>
+              <span class="info-value">${esc(o.customerName || '—')}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Số điện thoại</span>
+              <span class="info-value">${esc(o.phone || '—')}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Email</span>
+              <span class="info-value">${esc(o.email || '—')}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Ngày tạo đơn</span>
+              <span class="info-value">${orderDate}</span>
+            </div>
+            <div class="info-item full">
+              <span class="info-label">Địa chỉ giao hàng</span>
+              <span class="info-value">${esc(o.address || '—')}</span>
+            </div>
+            ${o.deliveryNote ? `
+            <div class="info-item full">
+              <span class="info-label">Ghi chú</span>
+              <span class="info-value" style="color:var(--gray-600);font-weight:500">${esc(o.deliveryNote)}</span>
+            </div>` : ''}
+          </div>
+        </div>
+      </div>
+
+      <!-- Sản phẩm -->
+      <div class="panel">
+        <div class="panel-header">Sản phẩm trong đơn</div>
+        <div class="panel-body">
+          <div style="overflow-x:auto">
+            <table class="ptable">
+              <thead>
+                <tr>
+                  <th style="width:36px">#</th>
+                  <th>Tên sản phẩm</th>
+                  <th class="right" style="width:80px">Số lượng</th>
+                  <th class="right" style="width:110px">Đơn giá</th>
+                  <th class="right" style="width:120px">Thành tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${details.length === 0
+                  ? `<tr><td colspan="5" style="text-align:center;color:var(--gray-400);padding:20px">Không có sản phẩm</td></tr>`
+                  : details.map((d, i) => `
+                <tr>
+                  <td class="no">${i + 1}</td>
+                  <td>${esc(d.productName || '—')}</td>
+                  <td class="right">${d.quantity || 0}</td>
+                  <td class="right">${fmtVND(d.price || 0)}</td>
+                  <td class="right">${fmtVND((d.quantity || 0) * (d.price || 0))}</td>
+                </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+          <div class="summary">
+            <div class="srow"><span>Tạm tính:</span><span>${fmtVND(subtotal)}</span></div>
+            <div class="srow"><span>Phí giao:</span><span>${fmtVND(ship)}</span></div>
+            <div class="srow"><span>Giảm giá:</span><span>- ${fmtVND(discount)}</span></div>
+            <div class="stotal"><span>Tổng cộng:</span><span>${fmtVND(total)}</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end cột trái -->
+
+    <!-- ══════ CỘT PHẢI ══════ -->
+    <div>
+
+      <!-- Timeline trạng thái giao hàng -->
+      <div class="panel">
+        <div class="panel-header">Trạng thái giao hàng</div>
+        <div class="panel-body">
+          <div class="timeline">
+            ${TIMELINE_STEPS.map((step, i) => {
+              const isDone   = curStep > i;
+              const isActive = curStep === i;
+              const isPend   = curStep < i;
+              return `
+              <div class="tl-item ${isDone ? 'done' : ''}">
+                <div class="tl-dot-wrap">
+                  <div class="tl-line"></div>
+                  <div class="tl-dot ${isDone ? 'done' : isActive ? 'active' : ''}"></div>
+                </div>
+                <div class="tl-content">
+                  <div class="tl-title ${isActive ? 'active' : isPend ? 'pending' : ''}">${step.label}</div>
+                  <div class="tl-time">${isDone || isActive ? (i === 0 ? orderDate : 'Đã cập nhật') : '—'}</div>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+
+          <!-- Cập nhật trạng thái -->
+          <div style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--gray-200)">
+            <div style="font-size:12px;font-weight:700;color:var(--gray-500);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Cập nhật trạng thái:</div>
+            <select id="newStatus" style="margin-bottom:10px">
+              <option value="">Chọn trạng thái mới ▾</option>
+              <option value="NEW"        ${o.status==='NEW'        ?'selected':''}>Chờ xử lý</option>
+              <option value="PROCESSING" ${o.status==='PROCESSING' ?'selected':''}>Đang xử lý</option>
+              <option value="SHIPPING"   ${o.status==='SHIPPING'   ?'selected':''}>Đang giao</option>
+              <option value="DONE"       ${o.status==='DONE'       ?'selected':''}>Giao thành công</option>
+              <option value="CANCEL"     ${o.status==='CANCEL'     ?'selected':''}>Huỷ đơn</option>
+            </select>
+            <button class="btn btn-dark btn-block" id="updateStatusBtn" onclick="updateStatus()">
+              <div class="spinner" id="statusSpinner"></div>
+              <i class="bi bi-arrow-repeat" id="statusIcon"></i>
+              Cập nhật
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tài xế giao hàng -->
+      <div class="panel">
+        <div class="panel-header">Tài xế giao hàng</div>
+        <div class="panel-body">
+          ${shipperName ? `
+          <div class="shipper-card">
+            <div class="shipper-avatar">${initials || '?'}</div>
+            <div class="shipper-info">
+              <div class="shipper-name">${esc(shipperName)}</div>
+              <div class="shipper-phone">SĐT: ${esc(shipperPhone || 'Chưa có')}</div>
+            </div>
+          </div>
+          ${vehicle ? `<div class="shipper-vehicle"><i class="bi bi-truck" style="margin-right:5px"></i>${esc(vehicle)}</div>` : ''}
+          ` : `
+          <div style="color:var(--gray-400);font-size:13px;margin-bottom:12px;text-align:center;padding:10px 0">
+            <i class="bi bi-person-dash" style="font-size:22px;display:block;margin-bottom:6px;opacity:.4"></i>
+            Chưa phân công tài xế
+          </div>
+          `}
+          <button class="btn btn-secondary btn-block" style="margin-top:${shipperName?'10px':'0'}" onclick="showToast('Tính năng đổi tài xế sẽ được cập nhật sau.','ok')">
+            <i class="bi bi-arrow-left-right"></i>
+            ${shipperName ? 'Đổi tài xế' : 'Phân công tài xế'}
+          </button>
+        </div>
+      </div>
+
+      <!-- Thanh toán -->
+      <div class="panel">
+        <div class="panel-header">Thanh toán</div>
+        <div class="panel-body">
+          <div class="pay-method">${esc(o.paymentMethod || 'Chưa chọn')}</div>
+          <div class="pay-status-row">
+            <span class="pay-label">Trạng thái:</span>
+            <span class="badge ${o.paymentStatus === 'Đã thanh toán' || o.paymentStatus === 'PAID' ? 'badge-pay-done' : 'badge-pay-pending'}">
+              ${esc(o.paymentStatus || 'Chưa thu')}
+            </span>
+          </div>
+          ${o.expectedTime ? `
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--gray-200);font-size:12.5px;color:var(--gray-500)">
+            <i class="bi bi-clock" style="margin-right:4px"></i>
+            Giao dự kiến: <span style="color:var(--gray-700);font-weight:600">${esc(o.expectedTime)}</span>
+          </div>` : ''}
+        </div>
+      </div>
+
+    </div><!-- end cột phải -->
+
+  </div>`;
+}
+
+/* ─── UPDATE STATUS ─── */
+async function updateStatus() {
+  const newStatus = document.getElementById('newStatus').value;
+  if (!newStatus) { showToast('Vui lòng chọn trạng thái mới!', 'err'); return; }
+  if (newStatus === orderData?.status) { showToast('Đơn hàng đã ở trạng thái này rồi!', 'err'); return; }
+
+  setStatusLoading(true);
+  try {
+    const payload = { ...orderData, status: newStatus };
+    const res = await fetch(API_BASE + '/api/orders/' + ORDER_ID, {
+      method : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      showToast('✅ Cập nhật trạng thái thành công!', 'ok');
+      orderData = data;
+      renderPage(data);
+    } else {
+      showToast('❌ ' + (data.message || 'Cập nhật thất bại!'), 'err');
+    }
+  } catch {
+    showToast('❌ Không kết nối được server!', 'err');
+  } finally { setStatusLoading(false); }
+}
+
+function setStatusLoading(on) {
+  const btn = document.getElementById('updateStatusBtn');
+  if (!btn) return;
+  btn.disabled = on;
+  document.getElementById('statusSpinner').style.display = on ? 'block' : 'none';
+  document.getElementById('statusIcon').style.display    = on ? 'none'  : 'inline';
+}
+
+/* ─── DELETE ─── */
+function openDelModal(id) {
+  document.getElementById('delMsg').textContent =
+    `Bạn có chắc muốn xoá đơn hàng DH-${id} không? Hành động này không thể hoàn tác.`;
+  document.getElementById('delOverlay').classList.add('show');
+}
+function closeDelModal() { document.getElementById('delOverlay').classList.remove('show'); }
+async function confirmDelete() {
+  closeDelModal();
+  try {
+    const res = await fetch(API_BASE + '/api/orders/' + ORDER_ID, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('✅ Đã xoá đơn hàng!', 'ok');
+      setTimeout(() => window.location.href = '/orders', 1500);
+    } else {
+      showToast('❌ Xoá thất bại!', 'err');
+    }
+  } catch {
+    showToast('❌ Không kết nối được server!', 'err');
+  }
+}
+
+/* ─── PRINT ─── */
+function printOrder() { window.print(); }
+
+/* ─── ERROR STATE ─── */
+function renderError(msg) {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="breadcrumb">
+      <a href="/orders">Đơn hàng</a>
+      <i class="bi bi-chevron-right" style="font-size:10px"></i>
+      <span>Chi tiết</span>
+    </div>
+    <div class="state-box" style="margin-top:40px">
+      <i class="bi bi-exclamation-triangle" style="color:var(--danger)"></i>
+      <p style="color:var(--danger)">${msg}</p>
+      <a href="/orders" class="btn btn-outline" style="margin-top:16px;display:inline-flex">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+      </a>
+    </div>`;
+}
+
+/* ─── HELPERS ─── */
+function fmtVND(n) { return new Intl.NumberFormat('vi-VN').format(n || 0) + 'đ'; }
+function fmtDateTime(s) {
+  try {
+    const d = new Date(s);
+    return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})
+      + ' ' + d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'});
+  } catch { return s; }
+}
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showToast(msg, type) {
+  const w = document.getElementById('toast-wrap');
+  const d = document.createElement('div');
+  d.className = 'toast-item ' + type;
+  d.innerHTML = `<i class="bi bi-${type==='ok'?'check-circle':'exclamation-circle-fill'}"></i> ${msg}`;
+  w.appendChild(d);
+  setTimeout(() => d.remove(), 4000);
+}
+
+/* ─── CLOSE MODAL ON OVERLAY CLICK ─── */
+document.getElementById('delOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeDelModal();
+});
+
+/* ─── INIT ─── */
+loadOrder();
+</script>
+</body>
+</html>
