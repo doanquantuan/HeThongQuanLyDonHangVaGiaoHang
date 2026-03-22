@@ -195,6 +195,31 @@ select:focus,input[type=text]:focus{border-color:var(--primary);box-shadow:0 0 0
 
 <div id="toast-wrap"></div>
 
+<!-- SHIPPER MODAL -->
+<div class="overlay" id="shipperOverlay">
+  <div class="modal">
+    <h3 id="shipperModalTitle">Phân công tài xế</h3>
+    <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">
+      Chọn tài xế từ danh sách nhân viên giao hàng trong hệ thống.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:20px">
+      <label style="font-size:12.5px;font-weight:700;color:var(--gray-700)">
+        Tài xế <span style="color:var(--danger)">*</span>
+      </label>
+      <select id="shipperCombo" style="width:100%;border:1px solid var(--gray-400);border-radius:var(--radius);padding:9px 12px;font-family:inherit;font-size:13.5px;color:var(--gray-800);background:var(--white);outline:none;transition:border-color .15s">
+        <option value="">-- Đang tải... --</option>
+      </select>
+      <div id="shipperComboErr" style="color:var(--danger);font-size:12px;display:none">Vui lòng chọn tài xế!</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel-modal" onclick="closeShipperModal()">Huỷ bỏ</button>
+      <button class="btn-confirm-del" style="background:var(--primary,#1a56db)" onclick="confirmShipperAssign()">
+        ✅ Xác nhận
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- DELETE MODAL -->
 <div class="overlay" id="delOverlay">
   <div class="modal">
@@ -462,7 +487,7 @@ function renderPage(o) {
             Chưa phân công tài xế
           </div>
           `}
-          <button class="btn btn-secondary btn-block" style="margin-top:${shipperName?'10px':'0'}" onclick="showToast('Tính năng đổi tài xế sẽ được cập nhật sau.','ok')">
+          <button class="btn btn-secondary btn-block" style="margin-top:${shipperName?'10px':'0'}" onclick="openShipperModal()">
             <i class="bi bi-arrow-left-right"></i>
             ${shipperName ? 'Đổi tài xế' : 'Phân công tài xế'}
           </button>
@@ -491,6 +516,75 @@ function renderPage(o) {
     </div><!-- end cột phải -->
 
   </div>`;
+}
+
+/* ─── SHIPPER MODAL ─── */
+async function openShipperModal() {
+  // Cập nhật tiêu đề modal
+  const currentShipper = orderData?.shipperName || orderData?.delivery?.shipperName || '';
+  document.getElementById('shipperModalTitle').textContent =
+    currentShipper ? 'Đổi tài xế' : 'Phân công tài xế';
+  document.getElementById('shipperComboErr').style.display = 'none';
+
+  // Load danh sách shipper
+  const combo = document.getElementById('shipperCombo');
+  combo.innerHTML = `<option value="">-- Đang tải... --</option>`;
+  combo.style.borderColor = '';
+  document.getElementById('shipperOverlay').classList.add('show');
+
+  try {
+    const res  = await fetch(API_BASE + '/api/deliveries/shippers');
+    const list = await res.json();
+    combo.innerHTML = `<option value="">-- Chọn tài xế --</option>` +
+      (Array.isArray(list) ? list : []).map(s =>
+        `<option value="${esc(s.fullName)}" ${s.fullName === currentShipper ? 'selected' : ''}>
+           ${esc(s.fullName)} (${esc(s.username)})
+         </option>`
+      ).join('');
+    if (!list.length) {
+      combo.innerHTML = `<option value="">-- Chưa có tài xế nào (cần user role SHIPPER) --</option>`;
+    }
+  } catch {
+    combo.innerHTML = `<option value="">-- Lỗi tải danh sách tài xế --</option>`;
+  }
+}
+
+function closeShipperModal() {
+  document.getElementById('shipperOverlay').classList.remove('show');
+}
+
+async function confirmShipperAssign() {
+  const combo    = document.getElementById('shipperCombo');
+  const errEl    = document.getElementById('shipperComboErr');
+  const newName  = combo.value;
+
+  if (!newName) {
+    combo.style.borderColor = 'var(--danger)';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  closeShipperModal();
+
+  try {
+    // Gọi PUT /api/orders/{id} với shipperName mới
+    const payload = { ...orderData, shipperName: newName };
+    const res = await fetch(API_BASE + '/api/orders/' + ORDER_ID, {
+      method : 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.ok) {
+      showToast('✅ Đã phân công tài xế: ' + newName, 'ok');
+      orderData = data;
+      renderPage(data);
+    } else {
+      showToast('❌ ' + (data.message || 'Phân công thất bại!'), 'err');
+    }
+  } catch {
+    showToast('❌ Không kết nối được server!', 'err');
+  }
 }
 
 /* ─── UPDATE STATUS ─── */
@@ -592,6 +686,10 @@ function showToast(msg, type) {
 }
 
 /* ─── CLOSE MODAL ON OVERLAY CLICK ─── */
+document.getElementById('shipperOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeShipperModal();
+});
+
 document.getElementById('delOverlay').addEventListener('click', function(e) {
   if (e.target === this) closeDelModal();
 });

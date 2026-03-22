@@ -271,8 +271,10 @@ textarea{resize:vertical;min-height:72px}
       <div class="panel">
         <div class="panel-header">Phân công tài xế</div>
         <div class="panel-body">
-          <input type="text" id="shipperName" placeholder="Chọn tài xế ▾"/>
-          <div class="note-text">Để trống nếu chưa phân công</div>
+          <select id="shipperName">
+            <option value="">-- Chưa phân công --</option>
+          </select>
+          <div class="note-text">Danh sách tài xế có role SHIPPER trong hệ thống</div>
         </div>
       </div>
 
@@ -465,8 +467,35 @@ function showToast(msg, type) {
   document.getElementById(id)?.addEventListener('input', function(){ this.classList.remove('invalid') })
 );
 
+/* ─── LOAD SHIPPERS ─── */
+async function loadShippers(selectedName = '') {
+  const sel = document.getElementById('shipperName');
+  sel.innerHTML = `<option value="">-- Đang tải tài xế... --</option>`;
+  try {
+    const res  = await fetch(API_BASE + '/api/deliveries/shippers');
+    const list = await res.json();
+    if (!Array.isArray(list) || list.length === 0) {
+      sel.innerHTML = `<option value="">-- Chưa có tài xế nào (cần user role SHIPPER) --</option>`;
+      return;
+    }
+    sel.innerHTML = `<option value="">-- Chưa phân công --</option>` +
+      list.map(s =>
+        `<option value="${s.fullName||''}" ${s.fullName === selectedName ? 'selected' : ''}>`+
+        `${s.fullName||''} (${s.username||''})</option>`
+      ).join('');
+  } catch(e) {
+    sel.innerHTML = `<option value="">-- Lỗi tải danh sách tài xế --</option>`;
+    console.error('loadShippers error:', e);
+  }
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 // Khởi động 1 dòng sản phẩm
 addRow();
+loadShippers();
 </script>
 </body>
 </html>
