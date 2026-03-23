@@ -57,6 +57,18 @@
         clearTimeout(_toastTimer);
         _toastTimer = setTimeout(() => t.className = '', 3200);
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const currentPath = window.location.pathname;
+        const links = document.querySelectorAll('.nav-links a');
+
+        links.forEach(link => {
+            const href = link.getAttribute('href') || link.getAttribute('th:href');
+            if (href && currentPath.startsWith(href.replace(/@\{|\}/g, ''))) {
+                link.classList.add('active');
+            }
+        });
+    });
 </script>
 </body>
 </html>

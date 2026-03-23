@@ -7,19 +7,14 @@
     </a>
 
     <nav class="nav-links">
-        <a th:href="@{/dashboard}" class="nav-link active">Dashboard</a>
+        <a th:href="@{/dashboard}" class="nav-link">Dashboard</a>
         <a th:href="@{/orders}" href="/orders" class="nav-link">Đơn hàng</a>
         <a th:href="@{/deliveries}" href="/deliveries" class="nav-link">Giao hàng</a>
-        <a href="#" class="nav-link dim">Khách hàng</a>
-        <a href="#" class="nav-link dim">Báo cáo</a>
     </nav>
 
     <div class="nav-spacer"></div>
 
     <div class="nav-right">
-        <button class="nav-icon" title="Tìm kiếm">⌕</button>
-        <button class="nav-icon" title="Thông báo">🔔</button>
-
         <button class="nav-user" onclick="logout()" title="Bấm để đăng xuất">
             <div class="nav-avatar" id="navAvatar">A</div>
             <span class="nav-uname" id="navUsername">Admin</span>
