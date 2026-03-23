@@ -1,689 +1,368 @@
 <!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Chỉnh sửa đơn hàng – DeliveryMgr</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
-<style>
-:root{
-  --white:#ffffff;
-  --gray-50:#f8f9fa;
-  --gray-100:#f1f3f5;
-  --gray-200:#e9ecef;
-  --gray-300:#dee2e6;
-  --gray-400:#ced4da;
-  --gray-500:#adb5bd;
-  --gray-600:#6c757d;
-  --gray-700:#495057;
-  --gray-800:#343a40;
-  --gray-900:#212529;
-  --primary:#1a56db;
-  --primary-light:#e8f0fe;
-  --danger:#dc3545;
-  --danger-light:#fff5f5;
-  --success:#198754;
-  --success-light:#d1e7dd;
-  --warning:#fd7e14;
-  --radius:6px;
-  --shadow:0 2px 8px rgba(0,0,0,.10);
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito',sans-serif;background:var(--gray-100);color:var(--gray-800);font-size:14px;min-height:100vh}
-
-/* TOPBAR */
-.topbar{background:var(--gray-900);color:#fff;display:flex;align-items:center;height:48px;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.3)}
-.topbar-brand{display:flex;align-items:center;gap:8px;padding:0 20px;height:100%;font-weight:800;font-size:15px;border-right:1px solid rgba(255,255,255,.12);white-space:nowrap;text-decoration:none;color:#fff}
-.topbar-nav{display:flex;height:100%}
-.topbar-nav a{display:flex;align-items:center;padding:0 18px;color:rgba(255,255,255,.65);font-size:13.5px;font-weight:600;text-decoration:none;height:100%;transition:all .15s;border-bottom:2px solid transparent}
-.topbar-nav a:hover{color:#fff;background:rgba(255,255,255,.06)}
-.topbar-nav a.active{color:#fff;border-bottom-color:var(--primary)}
-
-/* CONTENT */
-.content{max-width:1160px;margin:0 auto;padding:22px 20px 60px}
-.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--gray-500);margin-bottom:6px}
-.breadcrumb a{color:var(--gray-600);text-decoration:none}
-.breadcrumb a:hover{color:var(--primary)}
-
-/* PAGE HEADER */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
-.page-header-left{display:flex;flex-direction:column;gap:6px}
-.page-title{font-size:24px;font-weight:800;color:var(--gray-900)}
-
-/* BADGE trạng thái hiện tại */
-.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid transparent}
-.badge-NEW      {background:#e8f0fe;color:#1a56db;border-color:#b6ccf7}
-.badge-PROCESSING{background:#fff3cd;color:#856404;border-color:#ffe08a}
-.badge-SHIPPING {background:#cff4fc;color:#0a7899;border-color:#9ee8f8}
-.badge-DONE     {background:var(--success-light);color:var(--success);border-color:#a3cfbb}
-.badge-CANCEL   {background:var(--danger-light);color:var(--danger);border-color:#f5c6cb}
-
-/* CHANGE INDICATOR — highlight field khi bị sửa */
-.changed{border-color:var(--warning)!important;box-shadow:0 0 0 3px rgba(253,126,20,.12)!important}
-
-/* LAYOUT */
-.form-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
-
-/* PANEL */
-.panel{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
-.panel:last-child{margin-bottom:0}
-.panel-header{padding:10px 16px;border-bottom:1.5px dashed var(--gray-200);font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray-600)}
-.panel-body{padding:16px}
-
-/* FORM */
-.frow{display:grid;gap:12px;margin-bottom:12px}
-.frow.c2{grid-template-columns:1fr 1fr}
-.frow.c1{grid-template-columns:1fr}
-.frow:last-child{margin-bottom:0}
-.fg{display:flex;flex-direction:column;gap:4px}
-label{font-size:12.5px;font-weight:700;color:var(--gray-700)}
-label .req{color:var(--danger);margin-left:2px}
-
-input[type=text],input[type=email],input[type=tel],input[type=number],
-input[type=date],input[type=time],select,textarea{
-  width:100%;border:1px solid var(--gray-400);border-radius:var(--radius);
-  padding:8px 10px;font-family:inherit;font-size:13.5px;color:var(--gray-800);
-  background:var(--white);outline:none;transition:border-color .15s,box-shadow .15s
-}
-input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.12)}
-input.invalid,select.invalid{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(220,53,69,.10)!important}
-input::placeholder,textarea::placeholder{color:var(--gray-400);font-size:13px}
-textarea{resize:vertical;min-height:72px}
-
-/* CHECKBOX */
-.check-row{display:flex;align-items:center;gap:8px;margin-top:6px}
-.check-row input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--primary)}
-.check-row label{font-size:13px;font-weight:600;color:var(--gray-700);cursor:pointer;margin:0}
-
-/* TABLE */
-.ptable{width:100%;border-collapse:collapse;font-size:13px}
-.ptable thead th{background:var(--gray-50);padding:8px 10px;text-align:left;font-weight:700;font-size:12px;color:var(--gray-600);border-bottom:1.5px solid var(--gray-200)}
-.ptable tbody tr{border-bottom:1px solid var(--gray-200)}
-.ptable tbody td{padding:6px 8px;vertical-align:middle}
-.ptable input{padding:6px 8px;font-size:13px}
-.cn{min-width:180px}.cq{width:70px}.cp{width:110px}.ct{width:110px;font-weight:600;color:var(--gray-700)}.cd{width:40px;text-align:center}
-
-.btn-del{background:var(--white);border:1px solid var(--gray-300);border-radius:4px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--danger);cursor:pointer;font-size:13px;transition:all .15s}
-.btn-del:hover{background:var(--danger-light);border-color:var(--danger)}
-
-.btn-add-row{display:inline-flex;align-items:center;gap:6px;background:none;border:1px dashed var(--gray-400);border-radius:var(--radius);padding:7px 14px;font-family:inherit;font-size:13px;font-weight:600;color:var(--gray-600);cursor:pointer;margin-top:10px;transition:all .15s}
-.btn-add-row:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
-
-/* SUMMARY */
-.summary{margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)}
-.srow{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--gray-600);margin-bottom:8px}
-.srow input[type=number]{width:120px;text-align:right;padding:5px 8px;font-size:13px}
-.stotal{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:800;color:var(--gray-900);border-top:1.5px solid var(--gray-300);padding-top:10px;margin-top:4px}
-
-/* NOTE */
-.note-text{font-size:11.5px;color:var(--gray-500);margin-top:4px}
-
-/* CHANGES SUMMARY BOX */
-.changes-box{background:#fff8f0;border:1.5px solid #ffc07a;border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:none}
-.changes-box.show{display:block}
-.changes-title{font-size:11.5px;font-weight:700;color:var(--warning);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-.changes-list{font-size:12.5px;color:var(--gray-700);display:flex;flex-direction:column;gap:3px}
-.change-item{display:flex;gap:6px;align-items:flex-start}
-.change-item i{color:var(--warning);flex-shrink:0;margin-top:1px}
-
-/* LOADING SKELETON */
-.skeleton{background:linear-gradient(90deg,var(--gray-200) 25%,var(--gray-100) 50%,var(--gray-200) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:4px;height:36px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-
-/* ACTION BAR */
-.action-bar{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);padding:14px 20px;display:flex;justify-content:flex-end;align-items:center;gap:10px;grid-column:1/-1}
-.val-note{font-size:12px;color:var(--gray-500);flex:1;font-style:italic}
-.val-note b{color:var(--danger)}
-
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:var(--radius);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .15s;border:none;text-decoration:none}
-.btn-outline{background:var(--white);border:1.5px solid var(--gray-400);color:var(--gray-700)}
-.btn-outline:hover{border-color:var(--gray-600);color:var(--gray-900)}
-.btn-view{background:var(--gray-100);border:1.5px solid var(--gray-300);color:var(--gray-600)}
-.btn-view:hover{border-color:var(--gray-500);color:var(--gray-800)}
-.btn-save{background:var(--gray-900);border:1.5px solid var(--gray-900);color:#fff}
-.btn-save:hover{background:#000}
-.btn-save:disabled{opacity:.6;cursor:not-allowed}
-
-/* SPINNER */
-.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* TOAST */
-#toast-wrap{position:fixed;top:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px}
-.toast-item{padding:11px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;display:flex;align-items:center;gap:9px;box-shadow:var(--shadow);min-width:260px;animation:toastIn .22s ease}
-.toast-item.ok{background:var(--success-light);border:1px solid #a3cfbb;color:var(--success)}
-.toast-item.err{background:var(--danger-light);border:1px solid #f5c6cb;color:var(--danger)}
-@keyframes toastIn{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
-
-@media(max-width:860px){
-  .form-layout{grid-template-columns:1fr}
-  .frow.c2{grid-template-columns:1fr}
-}
-</style>
+  <meta charset="UTF-8">
+  <title>Chỉnh sửa đơn hàng</title>
 </head>
 <body>
 
-<!-- TOPBAR -->
-<nav class="topbar">
-  <a href="/dashboard" class="topbar-brand">🚚 DeliveryMgr</a>
-  <div class="topbar-nav">
-    <a href="/dashboard">Dashboard</a>
-    <a href="/orders" class="active">Đơn hàng</a>
-  </div>
-</nav>
+<div th:replace="~{fragments/layout :: main('Chỉnh sửa đơn hàng - DeliveryMgr', ~{::div.content})}">
+  <div class="content">
 
-<div id="toast-wrap"></div>
+    <style>
+      .form-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
 
-<div class="content">
+      .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px; }
+      .panel:last-child { margin-bottom: 0; }
+      .panel-hd { padding: 10px 16px; border-bottom: 1px dashed var(--border); font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text-3); font-family: var(--mono); }
+      .panel-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 
-  <!-- Breadcrumb -->
-  <div class="breadcrumb">
-    <a href="/orders">Đơn hàng</a>
-    <i class="bi bi-chevron-right" style="font-size:10px"></i>
-    <a href="#" id="breadcrumbDetail">Chi tiết</a>
-    <i class="bi bi-chevron-right" style="font-size:10px"></i>
-    <span>Chỉnh sửa</span>
-  </div>
+      .frow { display: grid; gap: 12px; }
+      .frow.c2 { grid-template-columns: 1fr 1fr; }
+      .fg { display: flex; flex-direction: column; gap: 4px; }
+      .fg label { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
+      .fg label .req { color: var(--red); margin-left: 2px; }
+      .fg input, .fg select, .fg textarea {
+        width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+        padding: 8px 10px; font-family: var(--font); font-size: 13.5px;
+        color: var(--text-1); background: var(--surface); outline: none; transition: border-color .15s, box-shadow .15s;
+      }
+      .fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,91,232,.10); }
+      .fg input.invalid { border-color: var(--red) !important; }
+      .fg input.changed, .fg textarea.changed { border-color: var(--orange) !important; box-shadow: 0 0 0 3px rgba(194,81,10,.09) !important; }
+      .fg input::placeholder, .fg textarea::placeholder { color: var(--text-4); font-size: 13px; }
+      .fg textarea { resize: vertical; min-height: 72px; }
+      .note-text { font-size: 11.5px; color: var(--text-3); }
 
-  <!-- Page header -->
-  <div class="page-header">
-    <div class="page-header-left">
-      <h1 class="page-title" id="pageTitle">Chỉnh sửa đơn hàng...</h1>
-      <span class="status-badge badge-NEW" id="statusBadge">Đang tải...</span>
-    </div>
-    <a href="#" id="btnViewDetail" class="btn btn-view">
-      <i class="bi bi-eye"></i> Xem chi tiết
-    </a>
-  </div>
+      .check-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+      .check-row input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
+      .check-row label { font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; margin: 0; }
 
-  <!-- Changes indicator -->
-  <div class="changes-box" id="changesBox">
-    <div class="changes-title"><i class="bi bi-pencil-square"></i> Có thay đổi chưa lưu</div>
-    <div class="changes-list" id="changesList"></div>
-  </div>
+      /* Status badge */
+      .st-badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 1px solid; white-space: nowrap; }
+      .st-NEW       { background: var(--blue-bg);   color: var(--blue);   border-color: var(--blue-bd); }
+      .st-CONFIRMED { background: var(--orange-bg); color: var(--orange); border-color: var(--orange-bd); }
+      .st-COMPLETED { background: var(--green-bg);  color: var(--green);  border-color: var(--green-bd); }
+      .st-CANCELLED { background: var(--red-bg);    color: var(--red);    border-color: var(--red-bd); }
 
-  <div class="form-layout">
+      /* Changes box */
+      .changes-box { background: var(--orange-bg); border: 1px solid var(--orange-bd); border-radius: var(--radius-lg); padding: 10px 14px; margin-bottom: 16px; display: none; }
+      .changes-box.show { display: block; }
+      .changes-title { font-size: 11px; font-weight: 700; color: var(--orange); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; font-family: var(--mono); }
+      .changes-list { font-size: 12.5px; color: var(--text-2); display: flex; flex-direction: column; gap: 3px; }
 
-    <!-- ══════ CỘT TRÁI ══════ -->
-    <div>
+      /* Product table */
+      .ptable { width: 100%; border-collapse: collapse; font-size: 13px; }
+      .ptable thead th { background: var(--surface-2); padding: 8px 10px; text-align: left; font-weight: 700; font-size: 11px; color: var(--text-3); font-family: var(--mono); border-bottom: 1px solid var(--border); }
+      .ptable tbody tr { border-bottom: 1px solid var(--border); }
+      .ptable tbody tr:last-child { border-bottom: none; }
+      .ptable tbody td { padding: 6px 8px; vertical-align: middle; }
+      .ptable input { padding: 6px 8px; font-size: 13px; }
+      .cn { min-width: 180px; } .cq { width: 70px; } .cp { width: 110px; }
+      .ct { width: 110px; font-weight: 700; color: var(--text-1); font-family: var(--mono); }
+      .cd { width: 36px; text-align: center; }
+      .btn-del-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xs); width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center; color: var(--red); cursor: pointer; font-size: 15px; transition: all .13s; line-height: 1; }
+      .btn-del-row:hover { background: var(--red-bg); border-color: var(--red-bd); }
+      .btn-add-row { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; background: none; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm); padding: 7px 14px; font-family: var(--font); font-size: 13px; font-weight: 600; color: var(--text-3); cursor: pointer; transition: all .13s; }
+      .btn-add-row:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
 
-      <!-- Thông tin khách hàng -->
-      <div class="panel">
-        <div class="panel-header">Thông tin khách hàng</div>
-        <div class="panel-body">
-          <div class="frow c2">
-            <div class="fg">
-              <label>Họ tên <span class="req">*</span></label>
-              <input type="text" id="customerName" placeholder="Nhập họ và tên..."/>
-            </div>
-            <div class="fg">
-              <label>Số điện thoại <span class="req">*</span></label>
-              <input type="tel" id="phone" placeholder="0xxx xxx xxx"/>
-            </div>
-          </div>
-          <div class="frow c1">
-            <div class="fg">
-              <label>Email</label>
-              <input type="email" id="email" placeholder="email@domain.com"/>
-            </div>
-          </div>
-          <div class="frow c1">
-            <div class="fg">
-              <label>Địa chỉ giao hàng <span class="req">*</span></label>
-              <input type="text" id="address" placeholder="Số nhà, tên đường..."/>
-            </div>
-          </div>
-          <div class="frow c1">
-            <div class="fg">
-              <label>Ghi chú giao hàng</label>
-              <textarea id="deliveryNote" placeholder="Ghi chú cho tài xế..."></textarea>
-            </div>
-          </div>
+      /* Skeleton */
+      .skeleton { background: linear-gradient(90deg, var(--surface-2) 25%, var(--surface-3) 50%, var(--surface-2) 75%); background-size: 200% 100%; animation: shimmer 1.2s infinite; border-radius: var(--radius-sm); height: 36px; margin-bottom: 8px; }
+      @keyframes shimmer { to { background-position: -200% 0; } }
+
+      .summary { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+      .srow { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
+      .srow input[type=number] { width: 120px; text-align: right; padding: 5px 8px; font-size: 13px; }
+      .stotal { display: flex; justify-content: space-between; font-size: 16px; font-weight: 800; color: var(--text-1); border-top: 1.5px solid var(--border-strong); padding-top: 10px; margin-top: 4px; font-family: var(--mono); }
+
+      .action-bar { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 20px; display: flex; justify-content: flex-end; align-items: center; gap: 10px; grid-column: 1/-1; box-shadow: var(--shadow-sm); }
+      .action-bar .val-note { flex: 1; font-size: 12px; color: var(--text-3); font-style: italic; }
+
+      .spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; display: none; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      @media (max-width: 860px) { .form-layout { grid-template-columns: 1fr; } .frow.c2 { grid-template-columns: 1fr; } }
+    </style>
+
+    <!-- Page header -->
+    <div class="page-hd">
+      <div>
+        <div class="bc">
+          <a href="/orders">Đơn hàng</a>
+          <span class="bc-sep">/</span>
+          <a href="#" id="breadcrumbDetail">Chi tiết</a>
+          <span class="bc-sep">/</span>
+          <span>Chỉnh sửa</span>
+        </div>
+        <div class="page-eyebrow">ĐƠN HÀNG</div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <h1 class="page-title" id="pageTitle">Chỉnh sửa đơn hàng...</h1>
+          <span class="st-badge st-NEW" id="statusBadge">Đang tải...</span>
         </div>
       </div>
+      <div class="page-actions">
+        <a href="#" id="btnViewDetail" class="btn btn-default">👁 Xem chi tiết</a>
+      </div>
+    </div>
 
-      <!-- Sản phẩm -->
-      <div class="panel">
-        <div class="panel-header">Sản phẩm</div>
-        <div class="panel-body">
+    <!-- Changes indicator -->
+    <div class="changes-box" id="changesBox">
+      <div class="changes-title">Có thay đổi chưa lưu</div>
+      <div class="changes-list" id="changesList"></div>
+    </div>
 
-          <!-- Loading skeleton -->
-          <div id="productSkeleton">
-            <div class="skeleton" style="margin-bottom:8px"></div>
-            <div class="skeleton" style="margin-bottom:8px"></div>
+    <div class="form-layout">
+
+      <!-- ══ CỘT TRÁI ══ -->
+      <div>
+        <div class="panel">
+          <div class="panel-hd">Thông tin khách hàng</div>
+          <div class="panel-body">
+            <div class="frow c2">
+              <div class="fg"><label>Họ tên <span class="req">*</span></label><input type="text" id="customerName" placeholder="Nhập họ và tên..." oninput="markChanged('customerName','Họ tên khách hàng')"/></div>
+              <div class="fg"><label>Số điện thoại <span class="req">*</span></label><input type="tel" id="phone" placeholder="0xxx xxx xxx" oninput="markChanged('phone','Số điện thoại')"/></div>
+            </div>
+            <div class="fg"><label>Email</label><input type="email" id="email" oninput="markChanged('email','Email')"/></div>
+            <div class="fg"><label>Địa chỉ <span class="req">*</span></label><input type="text" id="address" oninput="markChanged('address','Địa chỉ giao hàng')"/></div>
+            <div class="fg"><label>Ghi chú</label><textarea id="deliveryNote" oninput="markChanged('deliveryNote','Ghi chú')"></textarea></div>
           </div>
+        </div>
 
-          <div id="productSection" style="display:none">
-            <table class="ptable">
-              <thead>
-                <tr>
-                  <th class="cn">Tên sản phẩm</th>
-                  <th class="cq">SL</th>
-                  <th class="cp">Đơn giá</th>
-                  <th class="ct">Thành tiền</th>
-                  <th class="cd"></th>
-                </tr>
-              </thead>
-              <tbody id="ptbody"></tbody>
-            </table>
-            <button class="btn-add-row" type="button" onclick="addRow()">
-              <i class="bi bi-plus-lg"></i> Thêm sản phẩm
-            </button>
-            <div class="summary">
-              <div class="srow">
-                <span>Tạm tính:</span>
-                <span id="subtotal">0đ</span>
+        <div class="panel">
+          <div class="panel-hd">Sản phẩm</div>
+          <div class="panel-body">
+            <div id="productSkeleton"><div class="skeleton"></div><div class="skeleton"></div></div>
+            <div id="productSection" style="display:none">
+              <table class="ptable">
+                <thead><tr><th class="cn">Tên sản phẩm</th><th class="cq">SL</th><th class="cp">Đơn giá</th><th class="ct">Thành tiền</th><th class="cd"></th></tr></thead>
+                <tbody id="ptbody"></tbody>
+              </table>
+              <button class="btn-add-row" type="button" onclick="addRow()">+ Thêm sản phẩm</button>
+              <div class="summary">
+                <div class="srow"><span>Tạm tính:</span><span id="subtotal">0đ</span></div>
+                <div class="srow">
+                  <span>Phí giao hàng:</span>
+                  <input type="number" id="shippingFee" value="0" min="0" step="1000" oninput="calcSummary(); markChanged('shippingFee','Phí giao hàng')" style="width:120px;text-align:right"/>
+                </div>
+                <div class="stotal"><span>Tổng cộng:</span><span id="grandtotal">0đ</span></div>
               </div>
-              <div class="srow">
-                <span>Phí giao hàng:</span>
-                <input type="number" id="shippingFee" value="0" min="0" step="1000" oninput="calcSummary(); markChanged('shippingFee','Phí giao hàng')"/>
-              </div>
-              <div class="stotal">
-                <span>Tổng:</span>
-                <span id="grandtotal">0đ</span>
-              </div>
             </div>
           </div>
-
         </div>
       </div>
 
-    </div>
-
-    <!-- ══════ CỘT PHẢI ══════ -->
-    <div>
-
-      <!-- Trạng thái đơn -->
-      <div class="panel">
-        <div class="panel-header">Trạng thái đơn</div>
-        <div class="panel-body">
-          <select id="status" onchange="markChanged('status','Trạng thái đơn'); updateStatusBadge()">
-            <option value="NEW">Chờ xử lý</option>
-            <option value="PROCESSING">Đang xử lý</option>
-            <option value="SHIPPING">Đang giao</option>
-            <option value="DONE">Hoàn thành</option>
-            <option value="CANCEL">Huỷ</option>
-          </select>
+      <!-- ══ CỘT PHẢI ══ -->
+      <div>
+        <div class="panel">
+          <div class="panel-hd">Trạng thái đơn</div>
+          <div class="panel-body">
+            <div class="fg">
+              <select id="status" onchange="markChanged('status','Trạng thái đơn'); updateStatusBadge()">
+                <option value="NEW">Chờ xử lý</option>
+                <option value="CONFIRMED">Đã xác nhận</option>
+                <option value="COMPLETED">Hoàn thành</option>
+                <option value="CANCELLED">Đã huỷ</option>
+              </select>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <!-- Thanh toán -->
-      <div class="panel">
-        <div class="panel-header">Thanh toán</div>
-        <div class="panel-body">
-          <select id="paymentMethod" style="margin-bottom:10px" onchange="markChanged('paymentMethod','Phương thức thanh toán')">
-            <option value="">Hình thức ▾</option>
-            <option value="COD">Tiền mặt (COD)</option>
-            <option value="Chuyển khoản">Chuyển khoản</option>
-            <option value="Ví điện tử">Ví điện tử</option>
-          </select>
-          <div class="check-row">
-            <input type="checkbox" id="paid" onchange="markChanged('paid','Trạng thái thanh toán')"/>
-            <label for="paid">Đã thanh toán</label>
+        <div class="panel">
+          <div class="panel-hd">Thanh toán</div>
+          <div class="panel-body">
+            <div class="fg">
+              <label>Hình thức</label>
+              <select id="paymentMethod" onchange="markChanged('paymentMethod','Phương thức thanh toán')">
+                <option value="">-- Chọn --</option>
+                <option value="COD">Tiền mặt (COD)</option>
+                <option value="Chuyển khoản">Chuyển khoản</option>
+                <option value="Ví điện tử">Ví điện tử</option>
+              </select>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="paid" onchange="markChanged('paid','Trạng thái thanh toán')"/>
+              <label for="paid">Đã thanh toán</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd">Tài xế giao hàng</div>
+          <div class="panel-body">
+            <div class="fg">
+              <input type="text" id="shipperName" placeholder="Tên tài xế..." oninput="markChanged('shipperName','Tài xế giao hàng')"/>
+            </div>
+            <p class="note-text">Để trống nếu chưa phân công</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd">Thời gian giao dự kiến</div>
+          <div class="panel-body">
+            <div class="fg"><label>Ngày giao</label><input type="date" id="deliveryDate" onchange="markChanged('deliveryDate','Ngày giao')"/></div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="fg" style="flex:1"><label>Từ</label><input type="time" id="timeFrom" value="08:00" onchange="markChanged('timeFrom','Giờ giao')"/></div>
+              <span style="color:var(--text-3);font-weight:700;padding-top:18px">–</span>
+              <div class="fg" style="flex:1"><label>Đến</label><input type="time" id="timeTo" value="12:00" onchange="markChanged('timeTo','Giờ giao')"/></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Phân công tài xế -->
-      <div class="panel">
-        <div class="panel-header">Phân công tài xế</div>
-        <div class="panel-body">
-          <input type="text" id="shipperName" placeholder="Tên tài xế..." oninput="markChanged('shipperName','Tài xế giao hàng')"/>
-          <div class="note-text">Để trống nếu chưa phân công</div>
-        </div>
-      </div>
-
-      <!-- Thời gian giao dự kiến -->
-      <div class="panel">
-        <div class="panel-header">Thời gian giao dự kiến</div>
-        <div class="panel-body">
-          <input type="date" id="deliveryDate" style="margin-bottom:10px" onchange="markChanged('deliveryDate','Ngày giao')"/>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="time" id="timeFrom" value="08:00" style="flex:1" onchange="markChanged('timeFrom','Giờ giao')"/>
-            <span style="color:var(--gray-500);font-weight:700">–</span>
-            <input type="time" id="timeTo" value="12:00" style="flex:1" onchange="markChanged('timeTo','Giờ giao')"/>
-          </div>
-        </div>
+      <!-- ══ ACTION BAR ══ -->
+      <div class="action-bar">
+        <p class="val-note">* Trường bắt buộc tô đỏ nếu để trống. Field bị sửa hiện viền cam.</p>
+        <button class="btn btn-default" onclick="goBack()">Huỷ bỏ</button>
+        <button class="btn btn-default" onclick="resetForm()">↩ Hoàn tác</button>
+        <button class="btn btn-primary" id="submitBtn" onclick="submitEdit()">
+          <div class="spin" id="spin"></div>
+          Lưu thay đổi
+        </button>
       </div>
 
     </div>
 
-    <!-- ══════ ACTION BAR ══════ -->
-    <div class="action-bar">
-      <p class="val-note">
-        * Trường bắt buộc tô đỏ nếu để trống. Field bị sửa hiện <b>viền cam</b>.
-      </p>
-      <button class="btn btn-outline" onclick="goBack()">
-        <i class="bi bi-x-lg"></i> Huỷ bỏ
-      </button>
-      <button class="btn btn-outline" onclick="resetForm()" title="Khôi phục dữ liệu gốc">
-        <i class="bi bi-arrow-counterclockwise"></i> Hoàn tác
-      </button>
-      <button class="btn btn-save" id="submitBtn" onclick="submitEdit()">
-        <div class="spinner" id="spin"></div>
-        <i class="bi bi-floppy" id="submitIco"></i>
-        Lưu thay đổi
-      </button>
-    </div>
+    <script>
+      const API_BASE   = '';
+      const ORDERS_URL = '/orders';
+
+      function getOrderId() {
+        const parts = window.location.pathname.split('/').filter(Boolean);
+        const idx   = parts.indexOf('orders');
+        if (idx !== -1 && parts[idx+1] && parts[idx+1] !== 'edit') return parts[idx+1];
+        return new URLSearchParams(window.location.search).get('id');
+      }
+      const ORDER_ID = getOrderId();
+      let originalData  = null;
+      let changedFields = new Map();
+      let rid = 0;
+
+      async function loadOrder() {
+        if (!ORDER_ID) { showError('Không tìm thấy ID đơn hàng trong URL!'); return; }
+        try {
+          const res  = await fetch(API_BASE + '/api/orders/' + ORDER_ID);
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          if (data.message) throw new Error(data.message);
+          originalData = data;
+          fillForm(data);
+        } catch { showError('Không tải được đơn hàng ID: ' + ORDER_ID); }
+      }
+
+      function fillForm(data) {
+        document.getElementById('pageTitle').textContent        = `Chỉnh sửa đơn hàng #DH-${data.id}`;
+        document.getElementById('breadcrumbDetail').textContent = `DH-${data.id}`;
+        document.getElementById('breadcrumbDetail').href        = `/orders/${data.id}`;
+        document.getElementById('btnViewDetail').href           = `/orders/${data.id}`;
+        updateStatusBadgeValue(data.status);
+        ['customerName','phone','email','address','deliveryNote','status','paymentMethod','shipperName'].forEach(id => setValue(id, data[id]));
+        setValue('shippingFee', data.shippingFee??0);
+        document.getElementById('paid').checked = (data.paymentStatus === 'Đã thanh toán');
+        if (data.expectedTime) {
+          const p = data.expectedTime.split(' ');
+          if (p.length >= 3 && p[0].includes('-')) { setValue('deliveryDate',p[0]); setValue('timeFrom',p[1]); setValue('timeTo',p[3]||'12:00'); }
+          else { const t = data.expectedTime.split('–').map(s=>s.trim()); setValue('timeFrom',t[0]||'08:00'); setValue('timeTo',t[1]||'12:00'); }
+        }
+        document.getElementById('ptbody').innerHTML = '';
+        rid = 0;
+        (data.orderDetails||[]).forEach(item => addRow(item.productName, item.quantity, item.price));
+        if (!(data.orderDetails||[]).length) addRow();
+        document.getElementById('productSkeleton').style.display = 'none';
+        document.getElementById('productSection').style.display  = 'block';
+        calcSummary(); changedFields.clear(); updateChangesBox();
+      }
+
+      function setValue(id, val) { const el=document.getElementById(id); if(el) el.value=val??''; }
+
+      function addRow(name='', qty=1, price=0) {
+        rid++;
+        const id = rid;
+        const tr = document.createElement('tr');
+        tr.id = 'row-'+id;
+        tr.innerHTML = `
+    <td class="cn"><input type="text" value="${esc(name)}" placeholder="Nhập tên SP..." oninput="calcSummary();markChanged('products','Danh sách sản phẩm')"/></td>
+    <td class="cq"><input type="number" value="${qty}" min="1" oninput="calcRow(${id});markChanged('products','Danh sách sản phẩm')"/></td>
+    <td class="cp"><input type="number" value="${price}" min="0" step="1000" oninput="calcRow(${id});markChanged('products','Danh sách sản phẩm')"/></td>
+    <td class="ct" id="rt-${id}">${fmt(qty*price)}</td>
+    <td class="cd"><button class="btn-del-row" onclick="delRow(${id})">✕</button></td>`;
+        document.getElementById('ptbody').appendChild(tr);
+        calcSummary();
+      }
+      function delRow(id) { document.getElementById('row-'+id)?.remove(); markChanged('products','Danh sách sản phẩm'); calcSummary(); }
+      function calcRow(id) {
+        const row = document.getElementById('row-'+id); if(!row) return;
+        const ns = row.querySelectorAll('input[type=number]');
+        document.getElementById('rt-'+id).textContent = fmt((parseFloat(ns[0]?.value)||0)*(parseFloat(ns[1]?.value)||0));
+        calcSummary();
+      }
+      function calcSummary() {
+        let sub = 0;
+        document.querySelectorAll('#ptbody tr').forEach(r => { const ns=r.querySelectorAll('input[type=number]'); if(ns.length>=2) sub+=(parseFloat(ns[0].value)||0)*(parseFloat(ns[1].value)||0); });
+        const ship = parseFloat(document.getElementById('shippingFee').value)||0;
+        document.getElementById('subtotal').textContent   = fmt(sub);
+        document.getElementById('grandtotal').textContent = fmt(sub+ship);
+      }
+
+      function markChanged(fieldId, label) {
+        changedFields.set(fieldId, label);
+        const el = document.getElementById(fieldId);
+        if (el && el.tagName !== 'SELECT') el.classList.add('changed');
+        updateChangesBox();
+      }
+      function updateChangesBox() {
+        const box = document.getElementById('changesBox');
+        const list = document.getElementById('changesList');
+        if (!changedFields.size) { box.classList.remove('show'); return; }
+        box.classList.add('show');
+        list.innerHTML = [...changedFields.values()].map(l => `<div>· ${l}</div>`).join('');
+      }
+      function updateStatusBadge() {
+        const st = document.getElementById('status').value;
+        updateStatusBadgeValue(st);
+      }
+      function updateStatusBadgeValue(st) {
+        const ST = { NEW:'Chờ xử lý', CONFIRMED:'Đã xác nhận', COMPLETED:'Hoàn thành', CANCELLED:'Đã huỷ' };
+        const el = document.getElementById('statusBadge');
+        el.textContent = ST[st]||st;
+        el.className   = `st-badge st-${st}`;
+      }
+
+      function validate() {
+        let ok = true;
+        ['customerName','phone','address'].forEach(id => { const el=document.getElementById(id); if(!el.value.trim()){el.classList.add('invalid');ok=false;}else el.classList.remove('invalid'); });
+        if (!ok) showToast('Vui lòng điền đầy đủ các trường bắt buộc', 'error');
+        return ok;
+      }
+      function buildPayload() {
+        const rows=[];
+        document.querySelectorAll('#ptbody tr').forEach(r => { const n=r.querySelector('input[type=text]'); const ns=r.querySelectorAll('input[type=number]'); const nm=n?.value.trim(); if(nm) rows.push({productName:nm,quantity:parseInt(ns[0]?.value)||0,price:parseFloat(ns[1]?.value)||0}); });
+        const tf=document.getElementById('timeFrom').value, tt=document.getElementById('timeTo').value, dd=document.getElementById('deliveryDate').value;
+        return { customerName:document.getElementById('customerName').value.trim(), phone:document.getElementById('phone').value.trim(), email:document.getElementById('email').value.trim(), address:document.getElementById('address').value.trim(), status:document.getElementById('status').value, paymentMethod:document.getElementById('paymentMethod').value, paymentStatus:document.getElementById('paid').checked?'Đã thanh toán':'Chưa thu', shipperName:document.getElementById('shipperName').value.trim(), deliveryNote:document.getElementById('deliveryNote').value.trim(), expectedTime:dd?`${dd} ${tf} – ${tt}`:`${tf} – ${tt}`, shippingFee:parseFloat(document.getElementById('shippingFee').value)||0, discount:originalData?.discount??0, orderDetails:rows };
+      }
+      async function submitEdit() {
+        if (!validate()) return;
+        setLoading(true);
+        try {
+          const res  = await fetch(API_BASE+'/api/orders/'+ORDER_ID, {method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(buildPayload())});
+          const data = await res.json().catch(()=>({}));
+          if (res.ok) { showToast('Cập nhật đơn hàng thành công!','success'); changedFields.clear(); updateChangesBox(); document.querySelectorAll('.changed').forEach(el=>el.classList.remove('changed')); setTimeout(()=>window.location.href=`/orders/${ORDER_ID}`,1600); }
+          else showToast(data.message||'Cập nhật thất bại!','error');
+        } catch { showToast('Không kết nối được server!','error'); }
+        finally { setLoading(false); }
+      }
+      function resetForm() { if(!originalData) return; if(!confirm('Hoàn tác tất cả thay đổi?')) return; changedFields.clear(); document.querySelectorAll('.changed').forEach(el=>el.classList.remove('changed')); fillForm(originalData); showToast('Đã hoàn tác về dữ liệu gốc','success'); }
+      function goBack() { if(changedFields.size>0){if(!confirm('Bạn có thay đổi chưa lưu. Thoát?'))return;} window.location.href=ORDER_ID?`/orders/${ORDER_ID}`:ORDERS_URL; }
+      function setLoading(on) { document.getElementById('submitBtn').disabled=on; document.getElementById('spin').style.display=on?'block':'none'; }
+      function showError(msg) { document.querySelector('.content').innerHTML=`<div style="text-align:center;padding:60px 20px;color:var(--red)"><p style="font-size:14px;font-weight:600">${msg}</p><a href="/orders" class="btn btn-default" style="margin-top:20px;display:inline-flex">← Quay lại danh sách</a></div>`; }
+      function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n||0)+'đ'; }
+      function esc(s) { return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+      ['customerName','phone','address'].forEach(id => document.getElementById(id)?.addEventListener('input', function(){ this.classList.remove('invalid'); }));
+      loadOrder();
+    </script>
 
   </div>
 </div>
 
-<script>
-/* ─── CONFIG ───────────────────────────────────────────────
-   Khi chạy qua Spring Boot: const API_BASE = '';
-   Khi test file trực tiếp:  const API_BASE = 'http://localhost:8080';
-──────────────────────────────────────────────────────────── */
-const API_BASE   = '';
-const ORDERS_URL = '/orders';
-
-/* ─── LẤY ORDER ID TỪ URL ─── */
-// Hỗ trợ cả 2 dạng:
-//   /orders/5/edit   → 5
-//   ?id=5            → 5
-function getOrderId() {
-  const parts = window.location.pathname.split('/').filter(Boolean);
-  const idx   = parts.indexOf('orders');
-  if (idx !== -1 && parts[idx + 1] && parts[idx + 1] !== 'edit')
-    return parts[idx + 1];
-  return new URLSearchParams(window.location.search).get('id');
-}
-const ORDER_ID = getOrderId();
-
-/* ─── STATE ─── */
-let originalData  = null;   // data gốc từ API (để so sánh thay đổi & reset)
-let changedFields = new Set();
-let rid           = 0;
-
-/* ─── LOAD DATA TỪ API ─── */
-async function loadOrder() {
-  if (!ORDER_ID) {
-    showError('Không tìm thấy ID đơn hàng trong URL!');
-    return;
-  }
-  try {
-    const res  = await fetch(API_BASE + '/api/orders/' + ORDER_ID);
-    if (!res.ok) throw new Error();
-    const data = await res.json();
-    if (data.message) throw new Error(data.message);
-    originalData = data;
-    fillForm(data);
-  } catch {
-    showError('Không tải được đơn hàng ID: ' + ORDER_ID + '. Kiểm tra backend đang chạy.');
-  }
-}
-
-/* ─── ĐIỀN FORM ─── */
-function fillForm(data) {
-  // Cập nhật tiêu đề & breadcrumb
-  document.getElementById('pageTitle').textContent        = `Chỉnh sửa đơn hàng #DH-${data.id}`;
-  document.getElementById('breadcrumbDetail').textContent = `DH-${data.id}`;
-  document.getElementById('breadcrumbDetail').href        = `/orders/${data.id}`;
-  document.getElementById('btnViewDetail').href           = `/orders/${data.id}`;
-
-  // Cập nhật badge trạng thái
-  const badgeEl = document.getElementById('statusBadge');
-  const ST = { NEW:'Chờ xử lý', PROCESSING:'Đang xử lý', SHIPPING:'Đang giao', DONE:'Hoàn thành', CANCEL:'Đã huỷ' };
-  badgeEl.textContent  = ST[data.status] || data.status;
-  badgeEl.className    = `status-badge badge-${data.status}`;
-
-  // Điền các field
-  setValue('customerName', data.customerName);
-  setValue('phone',        data.phone);
-  setValue('email',        data.email);
-  setValue('address',      data.address);
-  setValue('deliveryNote', data.deliveryNote);
-  setValue('status',       data.status);
-  setValue('paymentMethod',data.paymentMethod);
-  setValue('shipperName',  data.shipperName);
-  setValue('shippingFee',  data.shippingFee ?? 0);
-
-  document.getElementById('paid').checked = (data.paymentStatus === 'Đã thanh toán' || data.paymentStatus === 'PAID');
-
-  // Parse expectedTime → date + timeFrom + timeTo
-  // Format lưu: "2026-03-21 08:00 – 12:00" hoặc "08:00 – 12:00"
-  if (data.expectedTime) {
-    const parts = data.expectedTime.split(' ');
-    if (parts.length >= 3 && parts[0].includes('-')) {
-      document.getElementById('deliveryDate').value = parts[0];
-      document.getElementById('timeFrom').value     = parts[1];
-      document.getElementById('timeTo').value       = parts[3] || '12:00';
-    } else {
-      const times = data.expectedTime.split('–').map(s => s.trim());
-      document.getElementById('timeFrom').value = times[0] || '08:00';
-      document.getElementById('timeTo').value   = times[1] || '12:00';
-    }
-  }
-
-  // Điền sản phẩm
-  document.getElementById('ptbody').innerHTML = '';
-  rid = 0;
-  (data.orderDetails || []).forEach(item => {
-    addRow(item.productName, item.quantity, item.price);
-  });
-  if ((data.orderDetails || []).length === 0) addRow();
-
-  // Hiện bảng sản phẩm, ẩn skeleton
-  document.getElementById('productSkeleton').style.display = 'none';
-  document.getElementById('productSection').style.display  = 'block';
-
-  calcSummary();
-  changedFields.clear();
-  updateChangesBox();
-}
-
-function setValue(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.value = val ?? '';
-}
-
-/* ─── PRODUCT ROWS ─── */
-function addRow(name='', qty=1, price=0) {
-  rid++;
-  const id = rid;
-  const tr = document.createElement('tr');
-  tr.id = 'row-' + id;
-  tr.innerHTML = `
-    <td class="cn"><input type="text" value="${esc(name)}" placeholder="Nhập tên SP..."
-        oninput="calcSummary(); markChanged('products','Danh sách sản phẩm')"/></td>
-    <td class="cq"><input type="number" value="${qty}" min="1"
-        oninput="calcRow(${id}); markChanged('products','Danh sách sản phẩm')"/></td>
-    <td class="cp"><input type="number" value="${price}" min="0" step="1000"
-        oninput="calcRow(${id}); markChanged('products','Danh sách sản phẩm')"/></td>
-    <td class="ct" id="rt-${id}">${fmt(qty * price)}</td>
-    <td class="cd">
-      <button class="btn-del" type="button" onclick="delRow(${id})" title="Xoá dòng">
-        <i class="bi bi-x"></i>
-      </button>
-    </td>`;
-  document.getElementById('ptbody').appendChild(tr);
-  calcSummary();
-}
-
-function delRow(id) {
-  document.getElementById('row-' + id)?.remove();
-  markChanged('products','Danh sách sản phẩm');
-  calcSummary();
-}
-
-function calcRow(id) {
-  const row = document.getElementById('row-' + id);
-  if (!row) return;
-  const ns = row.querySelectorAll('input[type=number]');
-  document.getElementById('rt-' + id).textContent = fmt((parseFloat(ns[0]?.value)||0) * (parseFloat(ns[1]?.value)||0));
-  calcSummary();
-}
-
-function calcSummary() {
-  let sub = 0;
-  document.querySelectorAll('#ptbody tr').forEach(r => {
-    const ns = r.querySelectorAll('input[type=number]');
-    if (ns.length >= 2) sub += (parseFloat(ns[0].value)||0) * (parseFloat(ns[1].value)||0);
-  });
-  const ship = parseFloat(document.getElementById('shippingFee').value)||0;
-  document.getElementById('subtotal').textContent   = fmt(sub);
-  document.getElementById('grandtotal').textContent = fmt(sub + ship);
-}
-
-/* ─── CHANGE TRACKING ─── */
-function markChanged(fieldId, label) {
-  changedFields.set(fieldId, label);
-  // Thêm highlight cam vào input nếu có
-  const el = document.getElementById(fieldId);
-  if (el && el.tagName !== 'SELECT') el.classList.add('changed');
-  updateChangesBox();
-}
-
-function updateChangesBox() {
-  const box  = document.getElementById('changesBox');
-  const list = document.getElementById('changesList');
-  if (changedFields.size === 0) {
-    box.classList.remove('show');
-    return;
-  }
-  box.classList.add('show');
-  list.innerHTML = [...changedFields.values()].map(label =>
-    `<div class="change-item"><i class="bi bi-circle-fill" style="font-size:6px;margin-top:5px"></i><span>${label}</span></div>`
-  ).join('');
-}
-
-function updateStatusBadge() {
-  const st  = document.getElementById('status').value;
-  const ST  = { NEW:'Chờ xử lý', PROCESSING:'Đang xử lý', SHIPPING:'Đang giao', DONE:'Hoàn thành', CANCEL:'Đã huỷ' };
-  const el  = document.getElementById('statusBadge');
-  el.textContent = ST[st] || st;
-  el.className   = `status-badge badge-${st}`;
-}
-
-/* ─── VALIDATE ─── */
-function validate() {
-  let ok = true;
-  ['customerName','phone','address'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el.value.trim()) { el.classList.add('invalid'); ok = false; }
-    else el.classList.remove('invalid');
-  });
-  if (!ok) showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)', 'err');
-  return ok;
-}
-
-/* ─── BUILD PAYLOAD ─── */
-function buildPayload() {
-  const rows = [];
-  document.querySelectorAll('#ptbody tr').forEach(r => {
-    const nameEl = r.querySelector('input[type=text]');
-    const nums   = r.querySelectorAll('input[type=number]');
-    const name   = nameEl?.value.trim();
-    if (name) rows.push({
-      productName: name,
-      quantity   : parseInt(nums[0]?.value)   || 0,
-      price      : parseFloat(nums[1]?.value) || 0
-    });
-  });
-  const tf = document.getElementById('timeFrom').value;
-  const tt = document.getElementById('timeTo').value;
-  const dd = document.getElementById('deliveryDate').value;
-  return {
-    customerName : document.getElementById('customerName').value.trim(),
-    phone        : document.getElementById('phone').value.trim(),
-    email        : document.getElementById('email').value.trim(),
-    address      : document.getElementById('address').value.trim(),
-    status       : document.getElementById('status').value,
-    paymentMethod: document.getElementById('paymentMethod').value,
-    paymentStatus: document.getElementById('paid').checked ? 'Đã thanh toán' : 'Chưa thu',
-    shipperName  : document.getElementById('shipperName').value.trim(),
-    deliveryNote : document.getElementById('deliveryNote').value.trim(),
-    expectedTime : dd ? `${dd} ${tf} – ${tt}` : `${tf} – ${tt}`,
-    shippingFee  : parseFloat(document.getElementById('shippingFee').value) || 0,
-    discount     : originalData?.discount ?? 0,
-    orderDetails : rows
-  };
-}
-
-/* ─── SUBMIT — gọi PUT /api/orders/{id} ─── */
-async function submitEdit() {
-  if (!validate()) return;
-  setLoading(true);
-  try {
-    const res  = await fetch(API_BASE + '/api/orders/' + ORDER_ID, {
-      method : 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify(buildPayload())
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      showToast('✅ Cập nhật đơn hàng thành công!', 'ok');
-      changedFields.clear();
-      updateChangesBox();
-      // Xoá highlight cam
-      document.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
-      setTimeout(() => window.location.href = `/orders/${ORDER_ID}`, 1600);
-    } else {
-      showToast('❌ ' + (data.message || 'Cập nhật thất bại!'), 'err');
-    }
-  } catch {
-    showToast('❌ Không kết nối được server! Kiểm tra backend đang chạy.', 'err');
-  } finally { setLoading(false); }
-}
-
-/* ─── RESET VỀ DATA GỐC ─── */
-function resetForm() {
-  if (!originalData) return;
-  if (!confirm('Hoàn tác tất cả thay đổi và quay về dữ liệu gốc?')) return;
-  changedFields.clear();
-  document.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
-  fillForm(originalData);
-  showToast('↩ Đã hoàn tác về dữ liệu gốc', 'ok');
-}
-
-/* ─── NAVIGATION ─── */
-function goBack() {
-  if (changedFields.size > 0) {
-    if (!confirm('Bạn có thay đổi chưa lưu. Thoát mà không lưu?')) return;
-  }
-  window.location.href = ORDER_ID ? `/orders/${ORDER_ID}` : ORDERS_URL;
-}
-
-/* ─── UI HELPERS ─── */
-function setLoading(on) {
-  document.getElementById('submitBtn').disabled      = on;
-  document.getElementById('spin').style.display      = on ? 'block' : 'none';
-  document.getElementById('submitIco').style.display = on ? 'none'  : 'inline';
-}
-
-function showToast(msg, type) {
-  const w = document.getElementById('toast-wrap');
-  const d = document.createElement('div');
-  d.className = 'toast-item ' + type;
-  d.innerHTML = `<i class="bi bi-${type==='ok'?'check-circle':'exclamation-circle-fill'}"></i> ${msg}`;
-  w.appendChild(d);
-  setTimeout(() => d.remove(), 4500);
-}
-
-function showError(msg) {
-  document.querySelector('.content').innerHTML = `
-    <div style="text-align:center;padding:60px 20px;color:var(--danger)">
-      <i class="bi bi-exclamation-triangle" style="font-size:36px;display:block;margin-bottom:12px"></i>
-      <p style="font-size:14px;font-weight:600">${msg}</p>
-      <a href="/orders" style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;
-        padding:8px 18px;border-radius:6px;border:1.5px solid #dee2e6;color:#495057;
-        font-weight:700;text-decoration:none;font-size:13px">
-        <i class="bi bi-arrow-left"></i> Quay lại danh sách
-      </a>
-    </div>`;
-}
-
-function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n||0) + 'đ'; }
-function esc(s) { return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-
-/* ─── XOÁ INVALID KHI GÕ ─── */
-['customerName','phone','address'].forEach(id =>
-  document.getElementById(id)?.addEventListener('input', function(){ this.classList.remove('invalid'); })
-);
-
-/* ─── INIT ─── */
-loadOrder();
-</script>
 </body>
 </html>
