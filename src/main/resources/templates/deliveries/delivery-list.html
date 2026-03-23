@@ -331,10 +331,15 @@ async function confirmStatus() {
 
   try {
     // Gọi PUT /api/deliveries/{id}/status với đúng enum value
+    // Nếu chuyển sang DONE → ghi deliveryDate = thời điểm hiện tại (ISO 8601)
+    const body = { status: nw };
+    if (nw === 'DONE') {
+      body.deliveryDate = new Date().toISOString(); // VD: "2026-03-23T15:30:00.000Z"
+    }
     const res = await fetch(`${API_BASE}/api/deliveries/${id}/status`, {
       method : 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify({ status: nw })  // WAITING | DELIVERING | DONE | FAILED
+      body   : JSON.stringify(body)
     });
 
     if (!res.ok) throw new Error();
@@ -353,7 +358,7 @@ async function confirmStatus() {
         setTimeout(renderTable, 350);
       }
     }
-    showToast('✅ Cập nhật trạng thái thành công!', 'success');
+    showToast('✅ Cập nhật trạng thái thành công!' + (nw === 'DONE' ? ' Đơn hàng đã được đánh dấu thanh toán.' : ''), 'success');
   } catch {
     if (sel) { sel.value = pStatusPrev; sel.className = `status-select s-${pStatusPrev}`; }
     showToast('❌ Cập nhật thất bại!', 'error');

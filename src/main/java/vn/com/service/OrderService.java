@@ -70,13 +70,25 @@ public class OrderService {
         return orderRepository.save(order);
     }
 
+    @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+        List<Order> orders = orderRepository.findAll();
+        // Force load delivery và orderDetails trong transaction để tránh LazyLoading
+        orders.forEach(o -> {
+            if (o.getDelivery() != null) o.getDelivery().getId();
+            if (o.getOrderDetails() != null) o.getOrderDetails().size();
+        });
+        return orders;
     }
 
+    @Transactional(readOnly = true)
     public Order getOrderById(Long id) {
-        return orderRepository.findById(id)
+        Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng với ID: " + id));
+        // Force load delivery trong transaction để tránh LazyLoading
+        if (order.getDelivery() != null) order.getDelivery().getId();
+        if (order.getOrderDetails() != null) order.getOrderDetails().size();
+        return order;
     }
 
     @Transactional
