@@ -95,16 +95,49 @@ public class DeliveryService {
         DeliveryStatus newStatus = parseDeliveryStatus(newStatusStr, delivery.getStatus());
         delivery.setStatus(newStatus);
 
+        // Cập nhật deliveryDate nếu có (frontend gửi khi chuyển sang DONE)
+        if (body.containsKey("deliveryDate") && body.get("deliveryDate") != null
+                && !body.get("deliveryDate").isBlank()) {
+            try {
+                delivery.setDeliveryDate(
+                    java.time.LocalDateTime.parse(
+                        body.get("deliveryDate"),
+                        java.time.format.DateTimeFormatter.ISO_DATE_TIME
+                    )
+                );
+            } catch (Exception ignored) {
+                // Nếu parse lỗi → ghi thời điểm hiện tại
+                delivery.setDeliveryDate(java.time.LocalDateTime.now());
+            }
+        } else if (newStatus == DeliveryStatus.DONE && delivery.getDeliveryDate() == null) {
+            // Fallback: nếu không có deliveryDate nhưng status là DONE → ghi now()
+            delivery.setDeliveryDate(java.time.LocalDateTime.now());
+        }
+
         // Cập nhật shipperName nếu có (dùng khi phân công từ modal)
         if (body.containsKey("shipperName") && body.get("shipperName") != null
                 && !body.get("shipperName").isBlank()) {
             delivery.setShipperName(body.get("shipperName"));
+        }
+        // Cập nhật shipperPhone nếu có
+        if (body.containsKey("shipperPhone") && body.get("shipperPhone") != null
+                && !body.get("shipperPhone").isBlank()) {
+            delivery.setShipperPhone(body.get("shipperPhone"));
+        }
+        // Cập nhật vehicleInfo nếu có
+        if (body.containsKey("vehicleInfo") && body.get("vehicleInfo") != null
+                && !body.get("vehicleInfo").isBlank()) {
+            delivery.setVehicleInfo(body.get("vehicleInfo"));
         }
 
         // Đồng bộ OrderStatus
         Order order = delivery.getOrder();
         if (order != null) {
             order.setStatus(toOrderStatus(newStatus));
+            // Khi giao thành công → tự động tích "Đã thanh toán"
+            if (newStatus == DeliveryStatus.DONE) {
+                order.setPaymentStatus("Đã thanh toán");
+            }
             orderRepository.save(order);
         }
 
