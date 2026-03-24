@@ -2,382 +2,501 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Tạo đơn hàng</title>
+  <title>Thêm đơn hàng mới – DeliveryMgr</title>
 </head>
 <body>
 
-<div th:replace="~{fragments/layout :: main('Thêm đơn hàng mới - DeliveryMgr', ~{::div.content})}">
+<div th:replace="~{fragments/layout :: main('Thêm đơn hàng mới – DeliveryMgr', ~{::div.content})}">
+
   <div class="content">
+  <div class="breadcrumb">
+    <a href="/orders">Đơn hàng</a>
+    <i class="bi bi-chevron-right" style="font-size:10px"></i>
+    <span>Thêm mới đơn hàng</span>
+  </div>
+  <h1 class="page-title">Thêm đơn hàng mới</h1>
 
-    <style>
-      /* ── FORM LAYOUT ── */
-      .form-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
+  <div class="form-layout">
 
-      /* ── PANEL ── */
-      .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 16px; }
-      .panel:last-child { margin-bottom: 0; }
-      .panel-hd { padding: 10px 16px; border-bottom: 1px dashed var(--border); font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--text-3); font-family: var(--mono); }
-      .panel-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+    <!-- ══════ CỘT TRÁI ══════ -->
+    <div>
 
-      /* ── FORM FIELDS ── */
-      .frow { display: grid; gap: 12px; }
-      .frow.c2 { grid-template-columns: 1fr 1fr; }
-      .frow.c3 { grid-template-columns: 1fr 1fr 1fr; }
-      .fg { display: flex; flex-direction: column; gap: 4px; }
-      .fg label { font-size: 12.5px; font-weight: 700; color: var(--text-1); }
-      .fg label .req { color: var(--red); margin-left: 2px; }
-      .fg input, .fg select, .fg textarea {
-        width: 100%; border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
-        padding: 8px 10px; font-family: var(--font); font-size: 13.5px;
-        color: var(--text-1); background: var(--surface); outline: none;
-        transition: border-color .15s, box-shadow .15s;
-      }
-      .fg input:focus, .fg select:focus, .fg textarea:focus {
-        border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,91,232,.10);
-      }
-      .fg input.invalid, .fg select.invalid { border-color: var(--red) !important; box-shadow: 0 0 0 3px rgba(185,28,28,.09) !important; }
-      .fg input::placeholder, .fg textarea::placeholder { color: var(--text-4); font-size: 13px; }
-      .fg textarea { resize: vertical; min-height: 72px; }
-      .note-text { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
-
-      /* ── CHECKBOX ── */
-      .check-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-      .check-row input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
-      .check-row label { font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; margin: 0; }
-
-      /* ── PRODUCT TABLE ── */
-      .ptable { width: 100%; border-collapse: collapse; font-size: 13px; }
-      .ptable thead th { background: var(--surface-2); padding: 8px 10px; text-align: left; font-weight: 700; font-size: 11px; color: var(--text-3); font-family: var(--mono); letter-spacing: .5px; border-bottom: 1px solid var(--border); }
-      .ptable thead th.right { text-align: right; }
-      .ptable tbody tr { border-bottom: 1px solid var(--border); }
-      .ptable tbody tr:last-child { border-bottom: none; }
-      .ptable tbody td { padding: 6px 8px; vertical-align: middle; }
-      .ptable input { padding: 6px 8px; font-size: 13px; }
-      .cn { min-width: 180px; } .cq { width: 70px; } .cp { width: 110px; }
-      .ct { width: 110px; font-weight: 700; color: var(--text-1); font-family: var(--mono); }
-      .cd { width: 36px; text-align: center; }
-      .btn-del-row {
-        background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-xs);
-        width: 26px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
-        color: var(--red); cursor: pointer; font-size: 15px; transition: all .13s; line-height: 1;
-      }
-      .btn-del-row:hover { background: var(--red-bg); border-color: var(--red-bd); }
-
-      .btn-add-row {
-        display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
-        background: none; border: 1px dashed var(--border-strong); border-radius: var(--radius-sm);
-        padding: 7px 14px; font-family: var(--font); font-size: 13px; font-weight: 600;
-        color: var(--text-3); cursor: pointer; transition: all .13s;
-      }
-      .btn-add-row:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-
-      /* ── SUMMARY ── */
-      .summary { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
-      .srow { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--text-2); margin-bottom: 8px; }
-      .srow input[type=number] { width: 120px; text-align: right; padding: 5px 8px; font-size: 13px; }
-      .stotal { display: flex; justify-content: space-between; align-items: center; font-size: 16px; font-weight: 800; color: var(--text-1); border-top: 1.5px solid var(--border-strong); padding-top: 10px; margin-top: 4px; font-family: var(--mono); }
-
-      /* ── ACTION BAR ── */
-      .action-bar {
-        background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg);
-        padding: 14px 20px; display: flex; justify-content: flex-end; align-items: center;
-        gap: 10px; grid-column: 1 / -1; box-shadow: var(--shadow-sm);
-      }
-      .action-bar .val-note { flex: 1; font-size: 12px; color: var(--text-3); font-style: italic; }
-
-      /* ── SPINNER ── */
-      .spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; display: none; }
-      @keyframes spin { to { transform: rotate(360deg); } }
-
-      @media (max-width: 860px) {
-        .form-layout { grid-template-columns: 1fr; }
-        .frow.c2, .frow.c3 { grid-template-columns: 1fr; }
-      }
-    </style>
-
-    <!-- Page header -->
-    <div class="page-hd">
-      <div>
-        <div class="bc">
-          <a href="/orders">Đơn hàng</a>
-          <span class="bc-sep">/</span>
-          <span>Thêm mới</span>
-        </div>
-        <div class="page-eyebrow">ĐƠN HÀNG</div>
-        <h1 class="page-title">Thêm đơn hàng mới</h1>
-      </div>
-      <div class="page-actions">
-        <button class="btn btn-default" onclick="window.location.href='/orders'">← Quay lại</button>
-      </div>
-    </div>
-
-    <div class="form-layout">
-
-      <!-- ══ CỘT TRÁI ══ -->
-      <div>
-
-        <!-- Thông tin khách hàng -->
-        <div class="panel">
-          <div class="panel-hd">Thông tin khách hàng</div>
-          <div class="panel-body">
-            <div class="frow c2">
-              <div class="fg">
-                <label>Họ tên <span class="req">*</span></label>
-                <input type="text" id="customerName" placeholder="Nhập họ và tên..."/>
-              </div>
-              <div class="fg">
-                <label>Số điện thoại <span class="req">*</span></label>
-                <input type="tel" id="phone" placeholder="0xxx xxx xxx"/>
-              </div>
+      <!-- Thông tin khách hàng -->
+      <div class="panel">
+        <div class="panel-header">Thông tin khách hàng</div>
+        <div class="panel-body">
+          <div class="frow c2">
+            <div class="fg">
+              <label>Họ tên <span class="req">*</span></label>
+              <input type="text" id="customerName" placeholder="Nhập họ và tên..."/>
             </div>
+            <div class="fg">
+              <label>Số điện thoại <span class="req">*</span></label>
+              <input type="tel" id="phone" placeholder="0xxx xxx xxx"/>
+            </div>
+          </div>
+          <div class="frow c1">
             <div class="fg">
               <label>Email</label>
               <input type="email" id="email" placeholder="email@domain.com"/>
             </div>
+          </div>
+          <div class="frow c1">
             <div class="fg">
               <label>Địa chỉ giao hàng <span class="req">*</span></label>
               <input type="text" id="address" placeholder="Số nhà, tên đường..."/>
             </div>
+          </div>
+          <div class="frow c1">
             <div class="fg">
               <label>Ghi chú giao hàng</label>
               <textarea id="deliveryNote" placeholder="Ghi chú cho tài xế..."></textarea>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Sản phẩm -->
-        <div class="panel">
-          <div class="panel-hd">Sản phẩm</div>
-          <div class="panel-body">
-            <table class="ptable">
-              <thead>
+      <!-- Sản phẩm -->
+      <div class="panel">
+        <div class="panel-header">Sản phẩm</div>
+        <div class="panel-body">
+          <table class="ptable">
+            <thead>
               <tr>
                 <th class="cn">Tên sản phẩm</th>
                 <th class="cq">SL</th>
                 <th class="cp">Đơn giá</th>
-                <th class="ct right">Thành tiền</th>
+                <th class="ct">Thành tiền</th>
                 <th class="cd"></th>
               </tr>
-              </thead>
-              <tbody id="ptbody"></tbody>
-            </table>
-            <button class="btn-add-row" type="button" onclick="addRow()">+ Thêm sản phẩm</button>
-            <div class="summary">
-              <div class="srow"><span>Tạm tính:</span><span id="subtotal">0đ</span></div>
-              <div class="srow">
-                <span>Phí giao hàng:</span>
-                <div class="fg" style="margin:0">
-                  <input type="number" id="shippingFee" value="30000" min="0" step="1000" oninput="calcSummary()" style="width:120px;text-align:right"/>
-                </div>
-              </div>
-              <div class="stotal"><span>Tổng cộng:</span><span id="grandtotal">0đ</span></div>
+            </thead>
+            <tbody id="ptbody"></tbody>
+          </table>
+          <button class="btn-add-row" type="button" onclick="addRow()">
+            <i class="bi bi-plus-lg"></i> Thêm sản phẩm
+          </button>
+          <div class="summary">
+            <div class="srow">
+              <span>Tạm tính:</span>
+              <span id="subtotal">0đ</span>
+            </div>
+            <div class="srow">
+              <span>Phí giao hàng:</span>
+              <input type="number" id="shippingFee" value="30000" min="0" step="1000" oninput="calcSummary()"/>
+            </div>
+            <div class="stotal">
+              <span>Tổng:</span>
+              <span id="grandtotal">0đ</span>
             </div>
           </div>
         </div>
-
-      </div>
-
-      <!-- ══ CỘT PHẢI ══ -->
-      <div>
-
-        <div class="panel">
-          <div class="panel-hd">Trạng thái đơn</div>
-          <div class="panel-body">
-            <div class="fg">
-              <select id="status">
-                <option value="NEW">Chờ xử lý</option>
-                <option value="CONFIRMED">Đã xác nhận</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-hd">Thanh toán</div>
-          <div class="panel-body">
-            <div class="fg">
-              <label>Hình thức</label>
-              <select id="paymentMethod">
-                <option value="">-- Chọn --</option>
-                <option value="COD">Tiền mặt (COD)</option>
-                <option value="Chuyển khoản">Chuyển khoản</option>
-                <option value="Ví điện tử">Ví điện tử</option>
-              </select>
-            </div>
-            <div class="check-row">
-              <input type="checkbox" id="paid"/>
-              <label for="paid">Đã thanh toán</label>
-            </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-hd">Phân công tài xế</div>
-          <div class="panel-body">
-            <div class="fg">
-              <select id="shipperName"><option value="">-- Đang tải... --</option></select>
-            </div>
-            <p class="note-text">Danh sách tài xế có role SHIPPER đang hoạt động</p>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="panel-hd">Thời gian giao dự kiến</div>
-          <div class="panel-body">
-            <div class="fg">
-              <label>Ngày giao</label>
-              <input type="date" id="deliveryDate"/>
-            </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <div class="fg" style="flex:1"><label>Từ</label><input type="time" id="timeFrom" value="08:00"/></div>
-              <span style="color:var(--text-3);font-weight:700;padding-top:18px">–</span>
-              <div class="fg" style="flex:1"><label>Đến</label><input type="time" id="timeTo" value="12:00"/></div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- ══ ACTION BAR ══ -->
-      <div class="action-bar">
-        <p class="val-note">* Trường bắt buộc được đánh dấu đỏ nếu để trống khi lưu.</p>
-        <button class="btn btn-default" onclick="window.location.href='/orders'">Huỷ bỏ</button>
-        <button class="btn btn-default" onclick="saveDraft()">Lưu nháp</button>
-        <button class="btn btn-primary" id="submitBtn" onclick="submitOrder()">
-          <div class="spin" id="spin"></div>
-          Lưu đơn hàng
-        </button>
       </div>
 
     </div>
 
-    <script>
-      const API_BASE   = '';
-      const ORDERS_URL = '/orders';
-      let rid = 0;
+    <!-- ══════ CỘT PHẢI ══════ -->
+    <div>
 
-      function addRow(name='', qty=1, price=0) {
-        rid++;
-        const id = rid;
-        const tr = document.createElement('tr');
-        tr.id = 'row-' + id;
-        tr.innerHTML = `
-    <td class="cn"><input type="text" value="${esc(name)}" placeholder="Nhập tên SP..."/></td>
-    <td class="cq"><input type="number" value="${qty}" min="1" oninput="calcRow(${id})"/></td>
-    <td class="cp"><input type="number" value="${price}" min="0" step="1000" oninput="calcRow(${id})"/></td>
-    <td class="ct right" id="rt-${id}">${fmt(qty*price)}</td>
-    <td class="cd"><button class="btn-del-row" onclick="delRow(${id})">✕</button></td>`;
-        document.getElementById('ptbody').appendChild(tr);
-        calcSummary();
-      }
-      function delRow(id) { document.getElementById('row-'+id)?.remove(); calcSummary(); }
-      function calcRow(id) {
-        const row = document.getElementById('row-'+id);
-        if (!row) return;
-        const ns = row.querySelectorAll('input[type=number]');
-        document.getElementById('rt-'+id).textContent = fmt((parseFloat(ns[0]?.value)||0)*(parseFloat(ns[1]?.value)||0));
-        calcSummary();
-      }
-      function calcSummary() {
-        let sub = 0;
-        document.querySelectorAll('#ptbody tr').forEach(r => {
-          const ns = r.querySelectorAll('input[type=number]');
-          if (ns.length >= 2) sub += (parseFloat(ns[0].value)||0)*(parseFloat(ns[1].value)||0);
-        });
-        const ship = parseFloat(document.getElementById('shippingFee').value)||0;
-        document.getElementById('subtotal').textContent   = fmt(sub);
-        document.getElementById('grandtotal').textContent = fmt(sub + ship);
-      }
-      function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n||0) + 'đ'; }
-      function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+      <!-- Trạng thái đơn -->
+      <div class="panel">
+        <div class="panel-header">Trạng thái đơn</div>
+        <div class="panel-body">
+          <select id="status">
+            <option value="NEW">Mới tạo</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="COMPLETED">Hoàn thành</option>
+            <option value="CANCELLED">Đã huỷ</option>
+          </select>
+        </div>
+      </div>
 
-      function validate() {
-        let ok = true;
-        ['customerName','phone','address'].forEach(id => {
-          const el = document.getElementById(id);
-          if (!el.value.trim()) { el.classList.add('invalid'); ok = false; }
-          else el.classList.remove('invalid');
-        });
-        if (!ok) showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)', 'error');
-        return ok;
-      }
+      <!-- Thanh toán -->
+      <div class="panel">
+        <div class="panel-header">Thanh toán</div>
+        <div class="panel-body">
+          <select id="paymentMethod" style="margin-bottom:10px">
+            <option value="">Hình thức ▾</option>
+            <option value="COD">Tiền mặt (COD)</option>
+            <option value="Chuyển khoản">Chuyển khoản</option>
+            <option value="Ví điện tử">Ví điện tử</option>
+          </select>
+          <div class="check-row">
+            <input type="checkbox" id="paid"/>
+            <label for="paid">Đã thanh toán</label>
+          </div>
+        </div>
+      </div>
 
-      function buildPayload() {
-        const rows = [];
-        document.querySelectorAll('#ptbody tr').forEach(r => {
-          const nameEl = r.querySelector('input[type=text]');
-          const nums   = r.querySelectorAll('input[type=number]');
-          rows.push({ productName: nameEl?.value.trim()||'', quantity: parseInt(nums[0]?.value)||0, price: parseFloat(nums[1]?.value)||0 });
-        });
-        const tf = document.getElementById('timeFrom').value;
-        const tt = document.getElementById('timeTo').value;
-        const dd = document.getElementById('deliveryDate').value;
-        return {
-          customerName : document.getElementById('customerName').value.trim(),
-          phone        : document.getElementById('phone').value.trim(),
-          email        : document.getElementById('email').value.trim(),
-          address      : document.getElementById('address').value.trim(),
-          status       : document.getElementById('status').value,
-          paymentMethod: document.getElementById('paymentMethod').value,
-          paymentStatus: document.getElementById('paid').checked ? 'Đã thanh toán' : 'Chưa thu',
-          shipperName  : document.getElementById('shipperName').value.trim(),
-          deliveryNote : document.getElementById('deliveryNote').value.trim(),
-          expectedTime : dd ? `${dd} ${tf} – ${tt}` : `${tf} – ${tt}`,
-          shippingFee  : parseFloat(document.getElementById('shippingFee').value)||0,
-          discount     : 0,
-          orderDetails : rows
-        };
-      }
+      <!-- Phân công tài xế -->
+      <div class="panel">
+        <div class="panel-header">Phân công tài xế</div>
+        <div class="panel-body">
+          <select id="shipperName">
+            <option value="">-- Chưa phân công --</option>
+          </select>
+          <div class="note-text">Danh sách tài xế có role SHIPPER trong hệ thống</div>
+        </div>
+      </div>
 
-      async function submitOrder() {
-        if (!validate()) return;
-        setLoading(true);
-        try {
-          const res  = await fetch(API_BASE + '/api/orders', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(buildPayload()) });
-          const data = await res.json().catch(()=>({}));
-          if (res.status === 201 || res.ok) {
-            showToast('Lưu đơn hàng thành công! ID: ' + (data.id??''), 'success');
-            setTimeout(() => window.location.href = ORDERS_URL, 1800);
-          } else {
-            showToast(data.message || 'Lỗi không xác định', 'error');
-          }
-        } catch { showToast('Không kết nối được server!', 'error'); }
-        finally { setLoading(false); }
-      }
+      <!-- Thời gian giao dự kiến -->
+      <div class="panel">
+        <div class="panel-header">Thời gian giao dự kiến</div>
+        <div class="panel-body">
+          <input type="date" id="deliveryDate" style="margin-bottom:10px"/>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input type="time" id="timeFrom" value="08:00" style="flex:1"/>
+            <span style="color:var(--gray-500);font-weight:700">–</span>
+            <input type="time" id="timeTo" value="12:00" style="flex:1"/>
+          </div>
+        </div>
+      </div>
 
-      function saveDraft() {
-        console.log('[PAYLOAD]', JSON.stringify(buildPayload(), null, 2));
-        showToast('Payload đã in ra Console (F12)', 'success');
-      }
+    </div>
 
-      function setLoading(on) {
-        document.getElementById('submitBtn').disabled  = on;
-        document.getElementById('spin').style.display  = on ? 'block' : 'none';
-      }
+    <!-- ══════ ACTION BAR ══════ -->
+    <div class="action-bar">
+      <p class="val-note">
+        * Validation: Tô đỏ field bắt buộc nếu để trống khi submit.
+        Hiện <b>toast notification</b> xác nhận khi lưu thành công.
+      </p>
+      <button class="btn btn-outline" onclick="goBack()">
+        <i class="bi bi-x-lg"></i> Huỷ bỏ
+      </button>
+      <button class="btn btn-draft" onclick="saveDraft()">
+        <i class="bi bi-floppy"></i> Lưu nháp
+      </button>
+      <button class="btn btn-save" id="submitBtn" onclick="submitOrder()">
+        <div class="spinner" id="spin"></div>
+        <i class="bi bi-check-lg" id="submitIco"></i>
+        Lưu đơn hàng
+      </button>
+    </div>
 
-      async function loadShippers() {
-        const sel = document.getElementById('shipperName');
-        try {
-          const res  = await fetch(API_BASE + '/api/deliveries/shippers');
-          const list = await res.json();
-          if (!Array.isArray(list) || !list.length) {
-            sel.innerHTML = '<option value="">-- Chưa có tài xế --</option>'; return;
-          }
-          sel.innerHTML = '<option value="">-- Chưa phân công --</option>' +
-                  list.map(s => `<option value="${s.fullName||''}">${s.fullName||''} (${s.username||''})</option>`).join('');
-        } catch { sel.innerHTML = '<option value="">-- Lỗi tải danh sách --</option>'; }
-      }
-
-      ['customerName','phone','address'].forEach(id =>
-              document.getElementById(id)?.addEventListener('input', function(){ this.classList.remove('invalid'); })
-      );
-
-      addRow();
-      loadShippers();
-    </script>
+</div>
 
   </div>
 </div>
+
+<style>
+:root{
+  --white:#ffffff;
+  --gray-50:#f8f9fa;
+  --gray-100:#f1f3f5;
+  --gray-200:#e9ecef;
+  --gray-300:#dee2e6;
+  --gray-400:#ced4da;
+  --gray-500:#adb5bd;
+  --gray-600:#6c757d;
+  --gray-700:#495057;
+  --gray-800:#343a40;
+  --gray-900:#212529;
+  --primary:#1a56db;
+  --primary-light:#e8f0fe;
+  --danger:#dc3545;
+  --danger-light:#fff5f5;
+  --success:#198754;
+  --success-light:#d1e7dd;
+  --warning:#fd7e14;
+  --radius:6px;
+  --shadow:0 2px 8px rgba(0,0,0,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:var(--gray-100);color:var(--gray-800);font-size:14px;min-height:100vh}
+
+/* TOPBAR */
+.topbar{background:var(--gray-900);color:#fff;display:flex;align-items:center;height:48px;position:sticky;top:0;z-index:200;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.topbar-brand{display:flex;align-items:center;gap:8px;padding:0 20px;height:100%;font-weight:800;font-size:15px;border-right:1px solid rgba(255,255,255,.12);white-space:nowrap}
+.topbar-nav{display:flex;height:100%}
+.topbar-nav a{display:flex;align-items:center;padding:0 18px;color:rgba(255,255,255,.65);font-size:13.5px;font-weight:600;text-decoration:none;height:100%;transition:all .15s;border-bottom:2px solid transparent}
+.topbar-nav a:hover{color:#fff;background:rgba(255,255,255,.06)}
+.topbar-nav a.active{color:#fff;border-bottom-color:var(--primary)}
+
+/* CONTENT */
+.content{max-width:1160px;margin:0 auto;padding:22px 20px 60px}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--gray-500);margin-bottom:6px}
+.breadcrumb a{color:var(--gray-600);text-decoration:none}
+.breadcrumb a:hover{color:var(--primary)}
+.page-title{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:20px}
+
+/* BADGE trạng thái */
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid transparent}
+.badge-NEW       {background:#e8f0fe;color:#1a56db;border-color:#b6ccf7}
+.badge-CONFIRMED {background:#fff3cd;color:#856404;border-color:#ffe08a}
+.badge-COMPLETED {background:var(--success-light);color:var(--success);border-color:#a3cfbb}
+.badge-CANCELLED {background:var(--danger-light);color:var(--danger);border-color:#f5c6cb}
+
+/* LAYOUT */
+.form-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+
+/* PANEL */
+.panel{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.panel-header{padding:10px 16px;border-bottom:1.5px dashed var(--gray-200);font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray-600)}
+.panel-body{padding:16px}
+
+/* FORM */
+.frow{display:grid;gap:12px;margin-bottom:12px}
+.frow.c2{grid-template-columns:1fr 1fr}
+.frow.c3{grid-template-columns:1fr 1fr 1fr}
+.frow.c1{grid-template-columns:1fr}
+.frow:last-child{margin-bottom:0}
+.fg{display:flex;flex-direction:column;gap:4px}
+
+label{font-size:12.5px;font-weight:700;color:var(--gray-700)}
+label .req{color:var(--danger);margin-left:2px}
+
+input[type=text],input[type=email],input[type=tel],input[type=number],input[type=date],input[type=time],select,textarea{
+  width:100%;border:1px solid var(--gray-400);border-radius:var(--radius);
+  padding:8px 10px;font-family:inherit;font-size:13.5px;color:var(--gray-800);
+  background:var(--white);outline:none;transition:border-color .15s,box-shadow .15s
+}
+input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.12)}
+input.invalid,select.invalid,textarea.invalid{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(220,53,69,.10)!important}
+input::placeholder,textarea::placeholder{color:var(--gray-400);font-size:13px}
+textarea{resize:vertical;min-height:72px}
+
+/* CHECKBOX */
+.check-row{display:flex;align-items:center;gap:8px;margin-top:6px}
+.check-row input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--primary)}
+.check-row label{font-size:13px;font-weight:600;color:var(--gray-700);cursor:pointer;margin:0}
+
+/* TABLE */
+.ptable{width:100%;border-collapse:collapse;font-size:13px}
+.ptable thead th{background:var(--gray-50);padding:8px 10px;text-align:left;font-weight:700;font-size:12px;color:var(--gray-600);border-bottom:1.5px solid var(--gray-200)}
+.ptable tbody tr{border-bottom:1px solid var(--gray-200)}
+.ptable tbody td{padding:6px 8px;vertical-align:middle}
+.ptable input{padding:6px 8px;font-size:13px}
+.cn{min-width:180px}.cq{width:70px}.cp{width:110px}.ct{width:110px;font-weight:600;color:var(--gray-700)}.cd{width:40px;text-align:center}
+
+.btn-del{background:var(--white);border:1px solid var(--gray-300);border-radius:4px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--danger);cursor:pointer;font-size:13px;transition:all .15s}
+.btn-del:hover{background:var(--danger-light);border-color:var(--danger)}
+
+.btn-add-row{display:inline-flex;align-items:center;gap:6px;background:none;border:1px dashed var(--gray-400);border-radius:var(--radius);padding:7px 14px;font-family:inherit;font-size:13px;font-weight:600;color:var(--gray-600);cursor:pointer;margin-top:10px;transition:all .15s}
+.btn-add-row:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+
+/* SUMMARY */
+.summary{margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)}
+.srow{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--gray-600);margin-bottom:8px}
+.srow input[type=number]{width:120px;text-align:right;padding:5px 8px;font-size:13px}
+.stotal{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:800;color:var(--gray-900);border-top:1.5px solid var(--gray-300);padding-top:10px;margin-top:4px}
+
+/* NOTE */
+.note-text{font-size:11.5px;color:var(--gray-500);margin-top:4px}
+
+/* ACTION BAR */
+.action-bar{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);padding:14px 20px;display:flex;justify-content:flex-end;align-items:center;gap:10px;grid-column:1/-1}
+.val-note{font-size:12px;color:var(--gray-500);flex:1;font-style:italic}
+.val-note b{color:var(--danger)}
+
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:var(--radius);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .15s;border:none}
+.btn-outline{background:var(--white);border:1.5px solid var(--gray-400);color:var(--gray-700)}
+.btn-outline:hover{border-color:var(--gray-600);color:var(--gray-900)}
+.btn-draft{background:var(--gray-200);border:1.5px solid var(--gray-300);color:var(--gray-700)}
+.btn-draft:hover{background:var(--gray-300)}
+.btn-save{background:var(--gray-900);border:1.5px solid var(--gray-900);color:#fff}
+.btn-save:hover{background:#000}
+.btn-save:disabled{opacity:.6;cursor:not-allowed}
+
+/* SPINNER */
+.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+
+@media(max-width:860px){
+  .form-layout{grid-template-columns:1fr}
+  .frow.c2,.frow.c3{grid-template-columns:1fr}
+}
+</style>
+
+<script>
+/* ─── CONFIG ──────────────────────────────────────────
+   Khi test standalone (mở file HTML trực tiếp):
+     const API_BASE = 'http://localhost:8080';
+   Khi chạy qua Spring Boot (Thymeleaf):
+     const API_BASE = '';
+──────────────────────────────────────────────────── */
+const API_BASE   = '';          // ← đổi thành 'http://localhost:8080' khi test file trực tiếp
+const ORDERS_URL = '/orders';
+
+/* ─── PRODUCT ROWS ─── */
+let rid = 0;
+
+function addRow() {
+  rid++;
+  const id = rid;
+  const tr = document.createElement('tr');
+  tr.id = 'row-' + id;
+  tr.innerHTML = `
+    <td class="cn"><input type="text" placeholder="Nhập tên SP..."/></td>
+    <td class="cq"><input type="number" value="1" min="1" oninput="calcRow(${id})"/></td>
+    <td class="cp"><input type="number" value="0" min="0" step="1000" oninput="calcRow(${id})"/></td>
+    <td class="ct" id="rt-${id}">0đ</td>
+    <td class="cd">
+      <button class="btn-del" type="button" onclick="delRow(${id})"><i class="bi bi-x"></i></button>
+    </td>`;
+  document.getElementById('ptbody').appendChild(tr);
+  calcSummary();
+}
+
+function delRow(id) {
+  document.getElementById('row-' + id)?.remove();
+  calcSummary();
+}
+
+function calcRow(id) {
+  const row = document.getElementById('row-' + id);
+  if (!row) return;
+  const ns = row.querySelectorAll('input[type=number]');
+  const v  = (parseFloat(ns[0]?.value)||0) * (parseFloat(ns[1]?.value)||0);
+  document.getElementById('rt-' + id).textContent = fmt(v);
+  calcSummary();
+}
+
+function calcSummary() {
+  let sub = 0;
+  document.querySelectorAll('#ptbody tr').forEach(r => {
+    const ns = r.querySelectorAll('input[type=number]');
+    if (ns.length >= 2) sub += (parseFloat(ns[0].value)||0) * (parseFloat(ns[1].value)||0);
+  });
+  const ship = parseFloat(document.getElementById('shippingFee').value)||0;
+  document.getElementById('subtotal').textContent   = fmt(sub);
+  document.getElementById('grandtotal').textContent = fmt(sub + ship);
+}
+
+function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n) + 'đ'; }
+
+/* ─── VALIDATE ─── */
+function validate() {
+  let ok = true;
+  ['customerName','phone','address'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) { el.classList.add('invalid'); ok = false; }
+    else el.classList.remove('invalid');
+  });
+  if (!ok) showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)', 'err');
+  return ok;
+}
+
+/* ─── BUILD PAYLOAD ─── */
+function buildPayload() {
+  const rows = [];
+  document.querySelectorAll('#ptbody tr').forEach(r => {
+    const nameEl = r.querySelector('input[type=text]');
+    const nums   = r.querySelectorAll('input[type=number]');
+    rows.push({
+      productName: nameEl?.value.trim() || '',
+      quantity   : parseInt(nums[0]?.value) || 0,
+      price      : parseFloat(nums[1]?.value) || 0
+    });
+  });
+  const tf = document.getElementById('timeFrom').value;
+  const tt = document.getElementById('timeTo').value;
+  const dd = document.getElementById('deliveryDate').value;
+  return {
+    customerName : document.getElementById('customerName').value.trim(),
+    phone        : document.getElementById('phone').value.trim(),
+    email        : document.getElementById('email').value.trim(),
+    address      : document.getElementById('address').value.trim(),
+    status       : document.getElementById('status').value,
+    paymentMethod: document.getElementById('paymentMethod').value,
+    paymentStatus: document.getElementById('paid').checked ? 'Đã thanh toán' : 'Chưa thu',
+    shipperName  : document.getElementById('shipperName').value.trim(),
+    deliveryNote : document.getElementById('deliveryNote').value.trim(),
+    expectedTime : dd ? `${dd} ${tf} – ${tt}` : `${tf} – ${tt}`,
+    shippingFee  : parseFloat(document.getElementById('shippingFee').value)||0,
+    discount     : 0,
+    orderDetails : rows
+  };
+}
+
+/* ─── SUBMIT ─── */
+async function submitOrder() {
+  if (!validate()) return;
+  setLoading(true);
+  try {
+    const res  = await fetch(API_BASE + '/api/orders', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body   : JSON.stringify(buildPayload())
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 201 || res.ok) {
+      showToast('✅ Lưu đơn hàng thành công! ID: ' + (data.id ?? ''), 'ok');
+      setTimeout(() => window.location.href = ORDERS_URL, 1800);
+    } else {
+      showToast('❌ ' + (data.message || 'Lỗi không xác định'), 'err');
+    }
+  } catch {
+    showToast('❌ Không kết nối được server! Kiểm tra backend đang chạy trên port 8080.', 'err');
+  } finally { setLoading(false); }
+}
+
+/* ─── LƯU NHÁP (xem payload) ─── */
+function saveDraft() {
+  const p = buildPayload();
+  console.log('[PAYLOAD JSON]\n' + JSON.stringify(p, null, 2));
+  showToast('📋 Payload đã in ra Console (F12 → Console tab)', 'ok');
+}
+
+function goBack() { window.location.href = ORDERS_URL; }
+
+function setLoading(on) {
+  document.getElementById('submitBtn').disabled      = on;
+  document.getElementById('spin').style.display      = on ? 'block' : 'none';
+  document.getElementById('submitIco').style.display = on ? 'none'  : 'inline';
+}
+
+function showToast(msg, type) {
+  const t = (type === 'ok') ? 'success' : (type === 'err') ? 'error' : (type || 'success');
+  if (typeof window._layoutShowToast === 'function') {
+    window._layoutShowToast(msg, t);
+  } else {
+    const el = document.getElementById('toast');
+    if (el) {
+      document.getElementById('toastIco').textContent = t === 'success' ? '✓' : '✕';
+      document.getElementById('toastMsg').textContent = msg;
+      el.className = 'show ' + t;
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => el.className = '', 3200);
+    }
+  }
+}
+
+/* ─── CLEAR INVALID ON INPUT ─── */
+['customerName','phone','address'].forEach(id =>
+  document.getElementById(id)?.addEventListener('input', function(){ this.classList.remove('invalid') })
+);
+
+
+/* ─── LOAD SHIPPERS ─── */
+async function loadShippers(selectedName = '') {
+  const sel = document.getElementById('shipperName');
+  if (!sel) return;
+  sel.innerHTML = `<option value="">-- Đang tải... --</option>`;
+  try {
+    const res  = await fetch(API_BASE + '/api/deliveries/shippers');
+    const list = await res.json();
+    if (!Array.isArray(list) || list.length === 0) {
+      sel.innerHTML = `<option value="">-- Chưa có tài xế nào (role SHIPPER) --</option>`;
+      return;
+    }
+    sel.innerHTML = `<option value="">-- Chưa phân công --</option>` +
+      list.map(s =>
+        `<option value="${s.fullName||''}"` +
+        ` data-phone="${s.phone||''}"` +
+        ` data-vehicle="${s.vehicleInfo||''}"` +
+        ` ${s.fullName === selectedName ? 'selected' : ''}>` +
+        `${s.fullName||''} (${s.username||''})</option>`
+      ).join('');
+  } catch(e) {
+    sel.innerHTML = `<option value="">-- Lỗi tải danh sách tài xế --</option>`;
+    console.error('loadShippers:', e);
+  }
+}
+
+// Khởi động 1 dòng sản phẩm
+addRow();
+loadShippers();
+</script>
 
 </body>
 </html>

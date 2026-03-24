@@ -2,131 +2,13 @@
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Danh sách đơn hàng</title>
+  <title>Danh sách đơn hàng – DeliveryMgr</title>
 </head>
 <body>
 
-<div th:replace="~{fragments/layout :: main('Danh sách đơn hàng - DeliveryMgr', ~{::div.content})}">
+<div th:replace="~{fragments/layout :: main('Danh sách đơn hàng – DeliveryMgr', ~{::div.content})}">
+
   <div class="content">
-
-    <style>
-      /* ── FILTER PANEL ── */
-      .filter-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; margin-bottom: 16px; box-shadow: var(--shadow-sm); }
-      .filter-row   { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
-      .fg           { display: flex; flex-direction: column; gap: 4px; }
-      .fg label     { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--text-3); font-family: var(--mono); }
-      .fg input, .fg select {
-        border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
-        padding: 7px 10px; font-family: var(--font); font-size: 13px;
-        color: var(--text-1); background: var(--surface); outline: none; transition: border-color .15s;
-      }
-      .fg input:focus, .fg select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,91,232,.10); }
-      .fg-search { flex: 1; min-width: 220px; }
-      .fg-search-wrap { position: relative; }
-      .search-ico { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-4); font-size: 13px; pointer-events: none; }
-      .fg-search input { width: 100%; padding-left: 32px; }
-
-      /* ── TABLE CARD ── */
-      .table-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-sm); }
-      .table-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); }
-      .table-info { font-size: 13px; color: var(--text-2); font-weight: 600; }
-
-      /* ── TABLE ── */
-      .otable { width: 100%; border-collapse: collapse; font-size: 13px; }
-      .otable thead th { background: var(--surface-2); padding: 10px 12px; text-align: left; font-weight: 700; font-size: 11px; color: var(--text-3); font-family: var(--mono); letter-spacing: .5px; border-bottom: 1px solid var(--border); white-space: nowrap; user-select: none; }
-      .otable thead th.sortable { cursor: pointer; }
-      .otable thead th.sortable:hover { color: var(--text-1); }
-      .otable thead th.sorted { color: var(--accent); }
-      .sort-ico { margin-left: 3px; font-size: 9px; opacity: .5; }
-      .sorted .sort-ico { opacity: 1; }
-      .otable tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
-      .otable tbody tr:hover { background: var(--hover); }
-      .otable tbody tr:last-child { border-bottom: none; }
-      .otable tbody td { padding: 10px 12px; vertical-align: middle; }
-      .col-cb  { width: 36px; text-align: center; }
-      .col-id  { width: 90px; font-weight: 700; color: var(--accent); font-size: 12.5px; font-family: var(--mono); }
-      .col-name { min-width: 120px; font-weight: 600; color: var(--text-1); }
-      .col-phone { width: 110px; font-size: 12.5px; color: var(--text-2); }
-      .col-addr  { min-width: 140px; max-width: 180px; font-size: 12.5px; color: var(--text-2); }
-      .col-date  { width: 100px; font-size: 12.5px; color: var(--text-2); white-space: nowrap; }
-      .col-total { width: 110px; font-weight: 700; text-align: right; white-space: nowrap; font-family: var(--mono); color: var(--text-1); }
-      .col-status { width: 110px; text-align: center; }
-      .col-action { width: 155px; text-align: center; white-space: nowrap; }
-      input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
-
-      /* ── STATUS BADGES ── */
-      .st-badge { display: inline-flex; align-items: center; justify-content: center; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; border: 1px solid; white-space: nowrap; }
-      .st-NEW       { background: var(--blue-bg);   color: var(--blue);   border-color: var(--blue-bd); }
-      .st-CONFIRMED { background: var(--orange-bg); color: var(--orange); border-color: var(--orange-bd); }
-      .st-COMPLETED { background: var(--green-bg);  color: var(--green);  border-color: var(--green-bd); }
-      .st-CANCELLED { background: var(--red-bg);    color: var(--red);    border-color: var(--red-bd); }
-
-      /* ── ACTION BUTTONS ── */
-      .act-wrap { display: flex; align-items: center; justify-content: center; gap: 5px; }
-      .btn-act {
-        display: inline-flex; align-items: center; gap: 4px;
-        padding: 4px 9px; border-radius: var(--radius-xs);
-        font-family: var(--font); font-size: 12px; font-weight: 600;
-        cursor: pointer; border: 1px solid; transition: all .13s;
-        text-decoration: none; white-space: nowrap; background: var(--surface);
-      }
-      .btn-act-view { border-color: var(--border); color: var(--text-2); }
-      .btn-act-view:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
-      .btn-act-edit { border-color: var(--border); color: var(--text-2); }
-      .btn-act-edit:hover { border-color: var(--orange); color: var(--orange); background: var(--orange-bg); }
-      .btn-act-del  { border-color: var(--border); color: var(--text-3); }
-      .btn-act-del:hover  { border-color: var(--red); color: var(--red); background: var(--red-bg); }
-
-      /* ── EMPTY / LOADING ── */
-      .empty-state { text-align: center; padding: 60px 20px; color: var(--text-3); }
-      .empty-state p { font-size: 14px; font-weight: 600; margin-top: 8px; }
-      .loading-row td { text-align: center; padding: 40px; color: var(--text-3); }
-      .dots { display: inline-flex; gap: 5px; }
-      .dots span { width: 7px; height: 7px; border-radius: 50%; background: var(--text-4); animation: dotB 1s ease-in-out infinite; }
-      .dots span:nth-child(2) { animation-delay: .15s; }
-      .dots span:nth-child(3) { animation-delay: .3s; }
-      @keyframes dotB { 0%,80%,100%{transform:scale(.8);opacity:.4} 40%{transform:scale(1.2);opacity:1} }
-
-      /* ── PAGINATION ── */
-      .pagination { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 16px; }
-      .page-btn {
-        display: inline-flex; align-items: center; justify-content: center;
-        min-width: 34px; height: 34px; padding: 0 10px;
-        border-radius: var(--radius-sm); border: 1px solid var(--border);
-        background: var(--surface); font-family: var(--font); font-size: 13px;
-        font-weight: 700; color: var(--text-2); cursor: pointer; transition: all .13s;
-      }
-      .page-btn:hover  { border-color: var(--accent); color: var(--accent); }
-      .page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-      .page-btn.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
-      .page-dots { color: var(--text-4); font-weight: 700; padding: 0 4px; }
-
-      /* ── CONFIRM MODAL ── */
-      .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 500; display: none; align-items: center; justify-content: center; }
-      .overlay.show { display: flex; }
-      .modal { background: var(--surface); border-radius: var(--radius-lg); padding: 28px; max-width: 380px; width: 90%; box-shadow: var(--shadow-md); }
-      .modal h3 { font-size: 16px; font-weight: 800; color: var(--text-1); margin-bottom: 8px; }
-      .modal p  { font-size: 13.5px; color: var(--text-2); margin-bottom: 22px; line-height: 1.6; }
-      .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
-
-      @media (max-width: 768px) {
-        .filter-row { flex-direction: column; }
-        .fg-search  { min-width: 100%; }
-        .col-addr, .col-phone { display: none; }
-      }
-    </style>
-
-    <!-- Delete modal -->
-    <div class="overlay" id="deleteOverlay">
-      <div class="modal">
-        <h3>Xác nhận xoá đơn hàng</h3>
-        <p id="deleteMsg">Bạn có chắc muốn xoá đơn hàng này? Hành động này không thể hoàn tác.</p>
-        <div class="modal-actions">
-          <button class="btn btn-default" onclick="closeDeleteModal()">Huỷ bỏ</button>
-          <button class="btn btn-danger" onclick="confirmDelete()">Xoá đơn</button>
-        </div>
-      </div>
-    </div>
 
     <!-- Page header -->
     <div class="page-hd">
@@ -135,253 +17,407 @@
         <h1 class="page-title">Danh sách đơn hàng</h1>
       </div>
       <div class="page-actions">
-        <button class="btn btn-primary" onclick="window.location.href='/orders/create'">+ Thêm đơn hàng</button>
+        <a href="/orders/create" class="btn btn-primary">
+          + Thêm đơn hàng
+        </a>
       </div>
     </div>
 
     <!-- Filter -->
-    <div class="filter-panel">
-      <div class="sec-hd" style="margin-bottom:10px">
-        <span class="sec-title">Bộ lọc &amp; tìm kiếm</span>
-        <button class="btn btn-ghost btn-sm" onclick="clearFilter()">✕ Xoá lọc</button>
-      </div>
-      <div class="filter-row">
-        <div class="fg fg-search">
+    <div class="card card-p" style="margin-bottom:16px">
+      <div class="ol-filter-label">Bộ lọc &amp; tìm kiếm</div>
+      <div class="ol-filter-row">
+        <div class="ol-fg ol-fg-search">
           <label>Tìm kiếm</label>
-          <div class="fg-search-wrap">
-            <span class="search-ico">⌕</span>
-            <input type="text" id="q" placeholder="Mã đơn, tên khách hàng, SĐT..." oninput="onSearch()"/>
+          <div class="ol-search-wrap">
+            <span class="ol-search-ico">🔍</span>
+            <input type="text" id="q" class="ol-input" placeholder="Mã đơn, tên khách hàng..." oninput="onSearch()"/>
           </div>
         </div>
-        <div class="fg">
+        <div class="ol-fg">
           <label>Trạng thái</label>
-          <select id="filterStatus" onchange="applyFilter()">
+          <select id="filterStatus" class="ol-input" onchange="applyFilter()">
             <option value="">Tất cả</option>
-            <option value="NEW">Chờ xử lý</option>
-            <option value="CONFIRMED">Đang giao</option>
-            <option value="COMPLETED">Thành công</option>
+            <option value="NEW">Mới tạo</option>
+            <option value="CONFIRMED">Đã xác nhận</option>
+            <option value="COMPLETED">Hoàn thành</option>
             <option value="CANCELLED">Đã huỷ</option>
           </select>
         </div>
-        <div class="fg">
+        <div class="ol-fg">
           <label>Từ ngày</label>
-          <input type="date" id="fromDate" onchange="applyFilter()"/>
+          <input type="date" id="fromDate" class="ol-input" onchange="applyFilter()"/>
         </div>
-        <div class="fg">
+        <div class="ol-fg">
           <label>Đến ngày</label>
-          <input type="date" id="toDate" onchange="applyFilter()"/>
+          <input type="date" id="toDate" class="ol-input" onchange="applyFilter()"/>
         </div>
-        <button class="btn btn-primary" onclick="applyFilter()">Lọc</button>
+        <button class="btn btn-primary" style="height:36px;padding:0 16px" onclick="applyFilter()">Lọc</button>
+        <button class="btn btn-default" style="height:36px;padding:0 14px" onclick="clearFilter()">Xoá lọc</button>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="table-card">
-      <div class="table-toolbar">
-        <span class="table-info" id="tableInfo">Đang tải...</span>
+    <div class="card card-p" style="padding:0;overflow:hidden">
+      <div class="ol-toolbar">
+        <span class="ol-info" id="tableInfo">Đang tải...</span>
+        <button class="btn btn-default" style="font-size:12.5px;padding:6px 14px" onclick="exportExcel()">
+          📊 Xuất Excel
+        </button>
       </div>
       <div style="overflow-x:auto">
-        <table class="otable">
+        <table class="ol-table">
           <thead>
-          <tr>
-            <th class="col-cb"><input type="checkbox" id="checkAll" onchange="toggleAll(this)"/></th>
-            <th class="col-id sortable sorted" onclick="sortBy('id')">Mã đơn <span class="sort-ico">↕</span></th>
-            <th class="col-name">Khách hàng</th>
-            <th class="col-phone">SĐT</th>
-            <th class="col-addr">Địa chỉ giao</th>
-            <th class="col-date sortable" onclick="sortBy('orderDate')">Ngày tạo <span class="sort-ico">↕</span></th>
-            <th class="col-total sortable" onclick="sortBy('totalAmount')" style="text-align:right">Tổng tiền <span class="sort-ico">↕</span></th>
-            <th class="col-status">Trạng thái</th>
-            <th class="col-action">Thao tác</th>
-          </tr>
+            <tr>
+              <th style="width:36px"><input type="checkbox" id="checkAll" onchange="toggleAll(this)"/></th>
+              <th class="ol-sortable ol-sorted" onclick="sortBy('id')">Mã đơn <span class="ol-sort-ico">↕</span></th>
+              <th>Khách hàng</th>
+              <th>SĐT</th>
+              <th>Địa chỉ giao</th>
+              <th class="ol-sortable" onclick="sortBy('orderDate')">Ngày tạo <span class="ol-sort-ico">↕</span></th>
+              <th class="ol-sortable" style="text-align:right" onclick="sortBy('totalAmount')">Tổng tiền <span class="ol-sort-ico">↕</span></th>
+              <th style="text-align:center">Trạng thái</th>
+              <th style="text-align:center">Thao tác</th>
+            </tr>
           </thead>
           <tbody id="tbody">
-          <tr class="loading-row">
-            <td colspan="9">
-              <div class="dots"><span></span><span></span><span></span></div>
-              <div style="margin-top:8px;font-size:13px">Đang tải dữ liệu...</div>
-            </td>
-          </tr>
+            <tr><td colspan="9" class="ol-loading">
+              <span class="ol-dots"><span></span><span></span><span></span></span>
+              <span style="margin-left:10px">Đang tải dữ liệu...</span>
+            </td></tr>
           </tbody>
         </table>
       </div>
-      <div class="pagination" id="pagination"></div>
+      <div class="ol-pagination" id="pagination"></div>
     </div>
 
-    <script>
-      const API_BASE = '';
-
-      let allOrders      = [];
-      let filtered       = [];
-      let currentPage    = 1;
-      const PAGE_SIZE    = 10;
-      let sortField      = 'id';
-      let sortDir        = 'desc';
-      let deleteTargetId = null;
-
-      const STATUS_MAP = {
-        NEW:       { label:'Chờ xử lý',  cls:'st-NEW'       },
-        CONFIRMED: { label:'Đang giao',  cls:'st-CONFIRMED'  },
-        COMPLETED: { label:'Thành công', cls:'st-COMPLETED'  },
-        CANCELLED: { label:'Đã huỷ',     cls:'st-CANCELLED'  },
-      };
-
-      async function loadOrders() {
-        try {
-          const res  = await fetch(API_BASE + '/api/orders');
-          const data = await res.json();
-          allOrders = Array.isArray(data) ? data : [];
-          applyFilter();
-        } catch {
-          document.getElementById('tbody').innerHTML = `
-      <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--red)">
-        Không kết nối được server. Kiểm tra backend đang chạy.
-      </td></tr>`;
-          document.getElementById('tableInfo').textContent = 'Lỗi tải dữ liệu';
-        }
-      }
-
-      let searchTimer;
-      function onSearch() { clearTimeout(searchTimer); searchTimer = setTimeout(applyFilter, 300); }
-
-      function applyFilter() {
-        const q      = document.getElementById('q').value.trim().toLowerCase();
-        const status = document.getElementById('filterStatus').value;
-        const from   = document.getElementById('fromDate').value;
-        const to     = document.getElementById('toDate').value;
-
-        filtered = allOrders.filter(o => {
-          const matchQ      = !q || ('dh-'+o.id).includes(q) || (o.customerName||'').toLowerCase().includes(q) || (o.phone||'').includes(q);
-          const matchStatus = !status || o.status === status;
-          const date        = o.orderDate ? o.orderDate.substring(0,10) : '';
-          return matchQ && matchStatus && (!from || date >= from) && (!to || date <= to);
-        });
-
-        sortData(); currentPage = 1; render();
-      }
-
-      function clearFilter() {
-        ['q','filterStatus','fromDate','toDate'].forEach(id => document.getElementById(id).value = '');
-        applyFilter();
-      }
-
-      function sortBy(field) {
-        if (sortField === field) sortDir = sortDir==='asc'?'desc':'asc';
-        else { sortField = field; sortDir = 'desc'; }
-        document.querySelectorAll('.otable thead th.sorted').forEach(th => th.classList.remove('sorted'));
-        sortData(); render();
-      }
-
-      function sortData() {
-        filtered.sort((a,b) => {
-          let av = a[sortField]??0, bv = b[sortField]??0;
-          if (typeof av==='string') av=av.toLowerCase();
-          if (typeof bv==='string') bv=bv.toLowerCase();
-          return sortDir==='asc' ? (av>bv?1:-1) : (av<bv?1:-1);
-        });
-      }
-
-      function render() {
-        const total = filtered.length;
-        const pages = Math.ceil(total/PAGE_SIZE)||1;
-        currentPage = Math.min(currentPage, pages);
-        const start = (currentPage-1)*PAGE_SIZE;
-        const slice = filtered.slice(start, start+PAGE_SIZE);
-
-        document.getElementById('tableInfo').textContent = total===0
-                ? 'Không có đơn hàng nào'
-                : `Hiển thị ${start+1}–${Math.min(start+PAGE_SIZE,total)} / ${total} đơn hàng`;
-
-        document.getElementById('tbody').innerHTML = !slice.length
-                ? `<tr><td colspan="9"><div class="empty-state"><p>Không tìm thấy đơn hàng nào</p></div></td></tr>`
-                : slice.map(rowHTML).join('');
-
-        renderPagination(pages);
-        document.getElementById('checkAll').checked = false;
-      }
-
-      function rowHTML(o) {
-        const st    = STATUS_MAP[o.status] || { label:o.status, cls:'st-NEW' };
-        const date  = o.orderDate ? fmtDate(o.orderDate) : '—';
-        const total = o.totalAmount != null ? fmtVND(o.totalAmount) : '—';
-        return `
-  <tr>
-    <td class="col-cb"><input type="checkbox" class="row-cb"/></td>
-    <td class="col-id">DH-${o.id}</td>
-    <td class="col-name">${esc(o.customerName||'—')}</td>
-    <td class="col-phone">${esc(o.phone||'—')}</td>
-    <td class="col-addr" title="${esc(o.address||'')}">${esc(truncate(o.address||'—',30))}</td>
-    <td class="col-date">${date}</td>
-    <td class="col-total">${total}</td>
-    <td class="col-status"><span class="st-badge ${st.cls}">${st.label}</span></td>
-    <td class="col-action">
-      <div class="act-wrap">
-        <a href="/orders/${o.id}"        class="btn-act btn-act-view">👁 Xem</a>
-        <a href="/orders/${o.id}/edit"   class="btn-act btn-act-edit">✏ Sửa</a>
-        <button class="btn-act btn-act-del" onclick="openDeleteModal(${o.id},'${esc(o.customerName||'')}')">🗑</button>
+    <!-- Modal xoá -->
+    <div class="ol-overlay" id="deleteOverlay">
+      <div class="ol-modal">
+        <h3>🗑 Xác nhận xoá đơn hàng</h3>
+        <p id="deleteMsg"></p>
+        <div class="ol-modal-actions">
+          <button class="btn btn-default" onclick="closeDeleteModal()">Huỷ bỏ</button>
+          <button class="btn" style="background:#dc3545;color:#fff;border:none" onclick="confirmDelete()">Xoá</button>
+        </div>
       </div>
-    </td>
-  </tr>`;
-      }
-
-      function renderPagination(pages) {
-        const el = document.getElementById('pagination');
-        if (pages<=1) { el.innerHTML=''; return; }
-        let html = `<button class="page-btn ${currentPage===1?'disabled':''}" onclick="goPage(${currentPage-1})">‹ Trước</button>`;
-        const show = pageRange(currentPage, pages);
-        let prev = null;
-        show.forEach(p => {
-          if (prev!==null && p-prev>1) html += `<span class="page-dots">…</span>`;
-          html += `<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
-          prev = p;
-        });
-        html += `<button class="page-btn ${currentPage===pages?'disabled':''}" onclick="goPage(${currentPage+1})">Sau ›</button>`;
-        el.innerHTML = html;
-      }
-      function pageRange(cur, total) {
-        const range = [];
-        for (let i=Math.max(1,cur-2); i<=Math.min(total,cur+2); i++) range.push(i);
-        if (range[0]>1) range.unshift(1);
-        if (range[range.length-1]<total) range.push(total);
-        return range;
-      }
-      function goPage(p) {
-        const pages = Math.ceil(filtered.length/PAGE_SIZE)||1;
-        if (p<1||p>pages) return;
-        currentPage = p; render();
-        window.scrollTo({top:0, behavior:'smooth'});
-      }
-
-      function openDeleteModal(id, name) {
-        deleteTargetId = id;
-        document.getElementById('deleteMsg').textContent = `Bạn có chắc muốn xoá đơn hàng DH-${id} của "${name}"? Hành động này không thể hoàn tác.`;
-        document.getElementById('deleteOverlay').classList.add('show');
-      }
-      function closeDeleteModal() { deleteTargetId=null; document.getElementById('deleteOverlay').classList.remove('show'); }
-      async function confirmDelete() {
-        if (!deleteTargetId) return;
-        const id = deleteTargetId; closeDeleteModal();
-        try {
-          const res = await fetch(API_BASE+'/api/orders/'+id, {method:'DELETE'});
-          if (res.ok) { showToast('Đã xoá đơn hàng DH-'+id,'success'); allOrders=allOrders.filter(o=>o.id!==id); applyFilter(); }
-          else showToast('Xoá thất bại!','error');
-        } catch { showToast('Không kết nối được server!','error'); }
-      }
-
-      function toggleAll(el) { document.querySelectorAll('.row-cb').forEach(cb=>cb.checked=el.checked); }
-
-      function fmtVND(n) { return new Intl.NumberFormat('vi-VN').format(n)+'đ'; }
-      function fmtDate(s) { try { const d=new Date(s); return d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'}); } catch{return s;} }
-      function truncate(s,n) { return s.length>n?s.slice(0,n)+'…':s; }
-      function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-      document.getElementById('deleteOverlay').addEventListener('click', function(e){ if(e.target===this) closeDeleteModal(); });
-
-      loadOrders();
-    </script>
+    </div>
 
   </div>
 </div>
+
+<style>
+/* ── Chỉ định nghĩa CSS riêng của trang này ──
+   CSS chung (body, btn, card...) đã có trong dashboard.css
+   Không override lại để tránh xung đột */
+
+/* Filter */
+.ol-filter-label{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-2);margin-bottom:10px}
+.ol-filter-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.ol-fg{display:flex;flex-direction:column;gap:4px}
+.ol-fg label{font-size:12px;font-weight:700;color:var(--text-2)}
+.ol-fg-search{flex:1;min-width:220px}
+.ol-search-wrap{position:relative}
+.ol-search-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px}
+.ol-input{border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;font-family:inherit;font-size:13px;color:var(--text-1);background:#fff;outline:none;transition:border-color .15s;width:100%}
+.ol-fg-search .ol-input{padding-left:32px}
+.ol-input:focus{border-color:#1a56db;box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+
+/* Toolbar */
+.ol-toolbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)}
+.ol-info{font-size:13px;color:var(--text-2);font-weight:600}
+
+/* Table */
+.ol-table{width:100%;border-collapse:collapse;font-size:13px}
+.ol-table thead th{background:var(--bg-2);padding:10px 12px;text-align:left;font-weight:700;font-size:12px;color:var(--text-2);border-bottom:1.5px solid var(--border);white-space:nowrap;user-select:none}
+.ol-table tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+.ol-table tbody tr:hover{background:var(--bg-2)}
+.ol-table tbody tr:last-child{border-bottom:none}
+.ol-table tbody td{padding:10px 12px;vertical-align:middle}
+.ol-sortable{cursor:pointer}
+.ol-sortable:hover{color:#1a56db}
+.ol-sorted .ol-sort-ico{color:#1a56db}
+.ol-sort-ico{font-size:10px;opacity:.5;margin-left:3px}
+.ol-sorted .ol-sort-ico{opacity:1}
+.ol-loading{text-align:center;padding:40px;color:var(--text-2)}
+.ol-dots{display:inline-flex;gap:4px}
+.ol-dots span{width:6px;height:6px;border-radius:50%;background:var(--text-3);animation:olDot 1s ease-in-out infinite}
+.ol-dots span:nth-child(2){animation-delay:.15s}
+.ol-dots span:nth-child(3){animation-delay:.3s}
+@keyframes olDot{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1.2);opacity:1}}
+
+/* Status badges — dùng đúng OrderStatus enum: NEW, CONFIRMED, COMPLETED, CANCELLED */
+.ol-badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 10px;border-radius:20px;font-size:11.5px;font-weight:700;border:1.5px solid transparent;white-space:nowrap}
+.ol-badge-NEW       {background:#e8f0fe;color:#1a56db;border-color:#b6ccf7}
+.ol-badge-CONFIRMED {background:#fff3cd;color:#856404;border-color:#ffe08a}
+.ol-badge-COMPLETED {background:#d1e7dd;color:#0a5c36;border-color:#a3cfbb}
+.ol-badge-CANCELLED {background:#f8d7da;color:#842029;border-color:#f5c6cb}
+
+/* Action buttons */
+.ol-act-wrap{display:flex;align-items:center;justify-content:center;gap:6px}
+.ol-btn-act{display:inline-flex;align-items:center;gap:4px;padding:5px 10px;border-radius:4px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid;transition:all .15s;text-decoration:none;white-space:nowrap;background:#fff}
+.ol-btn-view{border-color:var(--border);color:var(--text-2)}
+.ol-btn-view:hover{border-color:#1a56db;color:#1a56db;background:#e8f0fe}
+.ol-btn-edit{border-color:var(--border);color:var(--text-2)}
+.ol-btn-edit:hover{border-color:#fd7e14;color:#fd7e14;background:#fff8f0}
+.ol-btn-del{border-color:var(--border);color:#adb5bd}
+.ol-btn-del:hover{border-color:#dc3545;color:#dc3545;background:#fff5f5}
+
+/* Pagination */
+.ol-pagination{display:flex;align-items:center;justify-content:center;gap:6px;padding:16px}
+.ol-page-btn{display:inline-flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 10px;border-radius:var(--r);border:1.5px solid var(--border);background:#fff;font-family:inherit;font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer;transition:all .15s}
+.ol-page-btn:hover{border-color:#1a56db;color:#1a56db}
+.ol-page-btn.active{background:var(--text-1);border-color:var(--text-1);color:#fff}
+.ol-page-btn.disabled{opacity:.4;cursor:not-allowed;pointer-events:none}
+
+/* Empty state */
+.ol-empty{text-align:center;padding:60px 20px;color:var(--text-3)}
+
+/* Modal xoá */
+.ol-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;display:none;align-items:center;justify-content:center}
+.ol-overlay.show{display:flex}
+.ol-modal{background:#fff;border-radius:10px;padding:24px 24px 18px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.2);animation:olModalIn .2s ease}
+@keyframes olModalIn{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.ol-modal h3{font-size:15px;font-weight:700;color:#212529;margin-bottom:8px}
+.ol-modal p{font-size:13.5px;color:#6c757d;margin-bottom:20px;line-height:1.6}
+.ol-modal-actions{display:flex;gap:10px;justify-content:flex-end}
+
+input[type=checkbox]{accent-color:#1a56db;cursor:pointer}
+
+@media(max-width:768px){
+  .ol-filter-row{flex-direction:column}
+  .ol-fg-search{min-width:100%}
+}
+</style>
+
+<script>
+const API_BASE = '';
+const PAGE_SIZE = 10;
+let allOrders = [], filtered = [], currentPage = 1;
+let sortField = 'id', sortDir = 'desc';
+let deleteTargetId = null;
+
+/* ── STATUS CONFIG — dùng đúng OrderStatus enum ── */
+const STATUS_MAP = {
+  NEW       : { label: 'Mới tạo',     cls: 'ol-badge-NEW'       },
+  CONFIRMED : { label: 'Đã xác nhận', cls: 'ol-badge-CONFIRMED' },
+  COMPLETED : { label: 'Hoàn thành',  cls: 'ol-badge-COMPLETED' },
+  CANCELLED : { label: 'Đã huỷ',      cls: 'ol-badge-CANCELLED' },
+};
+
+/* ── LOAD ── */
+async function loadOrders() {
+  try {
+    const res  = await fetch(API_BASE + '/api/orders');
+    const data = await res.json();
+    allOrders = Array.isArray(data) ? data : [];
+    applyFilter();
+  } catch {
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="9" style="text-align:center;padding:40px;color:#dc3545">
+         ❌ Không kết nối được server. Kiểm tra backend đang chạy.
+       </td></tr>`;
+    document.getElementById('tableInfo').textContent = 'Lỗi tải dữ liệu';
+  }
+}
+
+/* ── FILTER ── */
+let _searchTimer;
+function onSearch() { clearTimeout(_searchTimer); _searchTimer = setTimeout(applyFilter, 300); }
+
+function applyFilter() {
+  const q      = document.getElementById('q').value.trim().toLowerCase();
+  const status = document.getElementById('filterStatus').value;
+  const from   = document.getElementById('fromDate').value;
+  const to     = document.getElementById('toDate').value;
+
+  filtered = allOrders.filter(o => {
+    const matchQ = !q ||
+      ('dh-' + o.id).includes(q) ||
+      (o.customerName || '').toLowerCase().includes(q) ||
+      (o.phone || '').includes(q);
+    const matchStatus = !status || o.status === status;
+    const date = (o.orderDate || '').substring(0, 10);
+    return matchQ && matchStatus && (!from || date >= from) && (!to || date <= to);
+  });
+  sortData();
+  currentPage = 1;
+  render();
+}
+
+function clearFilter() {
+  ['q','filterStatus','fromDate','toDate'].forEach(id => document.getElementById(id).value = '');
+  applyFilter();
+}
+
+/* ── SORT ── */
+function sortBy(field) {
+  sortDir = (sortField === field && sortDir === 'desc') ? 'asc' : 'desc';
+  sortField = field;
+  sortData(); render();
+}
+
+function sortData() {
+  filtered.sort((a, b) => {
+    let av = a[sortField] ?? 0, bv = b[sortField] ?? 0;
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
+  });
+}
+
+/* ── RENDER ── */
+function render() {
+  const total = filtered.length;
+  const pages = Math.ceil(total / PAGE_SIZE) || 1;
+  currentPage = Math.min(currentPage, pages);
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const slice = filtered.slice(start, start + PAGE_SIZE);
+
+  document.getElementById('tableInfo').textContent = total === 0
+    ? 'Không có đơn hàng nào'
+    : `Hiển thị ${start + 1}–${Math.min(start + PAGE_SIZE, total)} / ${total} đơn hàng`;
+
+  if (!slice.length) {
+    document.getElementById('tbody').innerHTML =
+      `<tr><td colspan="9"><div class="ol-empty">📭 Không tìm thấy đơn hàng nào</div></td></tr>`;
+  } else {
+    document.getElementById('tbody').innerHTML = slice.map(rowHTML).join('');
+  }
+  renderPagination(pages);
+  document.getElementById('checkAll').checked = false;
+}
+
+function rowHTML(o) {
+  const st    = STATUS_MAP[o.status] || { label: o.status, cls: 'ol-badge-NEW' };
+  const date  = o.orderDate ? fmtDate(o.orderDate) : '—';
+  const total = o.totalAmount != null ? fmtVND(o.totalAmount) : '—';
+  const addr  = o.address ? truncate(o.address, 30) : '—';
+  return `
+  <tr>
+    <td style="width:36px;text-align:center"><input type="checkbox" class="row-cb"/></td>
+    <td style="font-weight:700;font-size:12.5px">DH-${o.id}</td>
+    <td style="font-weight:600">${esc(o.customerName || '—')}</td>
+    <td style="font-size:12.5px;color:var(--text-2)">${esc(o.phone || '—')}</td>
+    <td style="font-size:12.5px;color:var(--text-2);max-width:180px" title="${esc(o.address||'')}">${esc(addr)}</td>
+    <td style="font-size:12.5px;color:var(--text-2);white-space:nowrap">${date}</td>
+    <td style="font-weight:700;text-align:right;white-space:nowrap">${total}</td>
+    <td style="text-align:center">
+      <span class="ol-badge ${st.cls}">${st.label}</span>
+    </td>
+    <td>
+      <div class="ol-act-wrap">
+        <a href="/orders/${o.id}" class="ol-btn-act ol-btn-view">👁 Xem</a>
+        <a href="/orders/${o.id}/edit" class="ol-btn-act ol-btn-edit">✏ Sửa</a>
+        <button class="ol-btn-act ol-btn-del" onclick="openDeleteModal(${o.id},'${esc(o.customerName||'')}')">🗑</button>
+      </div>
+    </td>
+  </tr>`;
+}
+
+/* ── PAGINATION ── */
+function renderPagination(pages) {
+  const el = document.getElementById('pagination');
+  if (pages <= 1) { el.innerHTML = ''; return; }
+  let html = `<button class="ol-page-btn ${currentPage===1?'disabled':''}" onclick="goPage(${currentPage-1})">‹ Trước</button>`;
+  const range = pageRange(currentPage, pages);
+  let prev = null;
+  range.forEach(p => {
+    if (prev !== null && p - prev > 1) html += `<span style="color:#adb5bd;font-weight:700;padding:0 4px">…</span>`;
+    html += `<button class="ol-page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`;
+    prev = p;
+  });
+  html += `<button class="ol-page-btn ${currentPage===pages?'disabled':''}" onclick="goPage(${currentPage+1})">Sau ›</button>`;
+  el.innerHTML = html;
+}
+
+function pageRange(cur, total) {
+  const r = [];
+  for (let i = Math.max(1, cur-2); i <= Math.min(total, cur+2); i++) r.push(i);
+  if (r[0] > 1) r.unshift(1);
+  if (r[r.length-1] < total) r.push(total);
+  return r;
+}
+
+function goPage(p) {
+  const pages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  if (p < 1 || p > pages) return;
+  currentPage = p;
+  render();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ── DELETE ── */
+function openDeleteModal(id, name) {
+  deleteTargetId = id;
+  document.getElementById('deleteMsg').textContent =
+    `Bạn có chắc muốn xoá đơn hàng DH-${id} của "${name}"? Hành động này không thể hoàn tác.`;
+  document.getElementById('deleteOverlay').classList.add('show');
+}
+function closeDeleteModal() {
+  deleteTargetId = null;
+  document.getElementById('deleteOverlay').classList.remove('show');
+}
+async function confirmDelete() {
+  if (!deleteTargetId) return;
+  const id = deleteTargetId;
+  closeDeleteModal();
+  try {
+    const res = await fetch(API_BASE + '/api/orders/' + id, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('✅ Đã xoá đơn hàng DH-' + id, 'ok');
+      allOrders = allOrders.filter(o => o.id !== id);
+      applyFilter();
+    } else {
+      showToast('❌ Xoá thất bại!', 'err');
+    }
+  } catch { showToast('❌ Không kết nối được server!', 'err'); }
+}
+
+/* ── CHECKBOX ── */
+function toggleAll(el) {
+  document.querySelectorAll('.row-cb').forEach(cb => cb.checked = el.checked);
+}
+
+function exportExcel() {
+  showToast('📊 Tính năng xuất Excel sẽ được cập nhật sau.', 'ok');
+}
+
+/* ── HELPERS ── */
+function fmtVND(n) { return new Intl.NumberFormat('vi-VN').format(n) + 'đ'; }
+function fmtDate(s) {
+  try { return new Date(s).toLocaleDateString('vi-VN', {day:'2-digit',month:'2-digit',year:'numeric'}); }
+  catch { return s; }
+}
+function truncate(s, n) { return s.length > n ? s.slice(0, n) + '…' : s; }
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* ── showToast dùng layout ── */
+function showToast(msg, type) {
+  const t = type === 'ok' ? 'success' : type === 'err' ? 'error' : (type || 'success');
+  if (typeof window._layoutShowToast === 'function') {
+    window._layoutShowToast(msg, t);
+  } else {
+    const el = document.getElementById('toast');
+    if (el) {
+      document.getElementById('toastIco').textContent = t === 'success' ? '✓' : '✕';
+      document.getElementById('toastMsg').textContent = msg;
+      el.className = 'show ' + t;
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => el.className = '', 3200);
+    }
+  }
+}
+
+/* ── CLOSE MODAL ON OVERLAY CLICK ── */
+document.getElementById('deleteOverlay').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+
+loadOrders();
+</script>
 
 </body>
 </html>
