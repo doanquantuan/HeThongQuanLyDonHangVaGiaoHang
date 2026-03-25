@@ -6,28 +6,43 @@
 </head>
 <body>
 
+<!-- Topbar standalone (chỉ hiển thị khi mở file trực tiếp; Thymeleaf layout sẽ thay thế phần này) -->
+<nav class="topbar" th:remove="all">
+  <a class="topbar-brand" href="/">
+    <i class="bi bi-truck" style="font-size:18px"></i> DeliveryMgr
+  </a>
+  <div class="topbar-nav">
+    <a href="/orders" class="active">Đơn hàng</a>
+    <a href="/deliveries">Giao hàng</a>
+    <a href="/users">Người dùng</a>
+  </div>
+</nav>
+
 <div th:replace="~{fragments/layout :: main('Chỉnh sửa đơn hàng – DeliveryMgr', ~{::div.content})}">
 
   <div class="content">
 
-  <!-- Breadcrumb -->
-  <div class="breadcrumb">
-    <a href="/orders">Đơn hàng</a>
-    <i class="bi bi-chevron-right" style="font-size:10px"></i>
-    <a href="#" id="breadcrumbDetail">Chi tiết</a>
-    <i class="bi bi-chevron-right" style="font-size:10px"></i>
-    <span>Chỉnh sửa</span>
-  </div>
-
   <!-- Page header -->
-  <div class="page-header">
-    <div class="page-header-left">
+  <div class="page-hd">
+    <div>
+      <div class="page-eyebrow">ĐƠN HÀNG</div>
       <h1 class="page-title" id="pageTitle">Chỉnh sửa đơn hàng...</h1>
-      <span class="status-badge badge-NEW" id="statusBadge">Đang tải...</span>
+      <div class="page-title-meta">
+        <span class="status-badge badge-NEW" id="statusBadge">Đang tải...</span>
+        <span class="page-breadcrumb-inline">
+          <a href="/orders">Đơn hàng</a>
+          <i class="bi bi-chevron-right" style="font-size:9px;color:var(--gray-400)"></i>
+          <a href="#" id="breadcrumbDetail">Chi tiết</a>
+          <i class="bi bi-chevron-right" style="font-size:9px;color:var(--gray-400)"></i>
+          <span>Chỉnh sửa</span>
+        </span>
+      </div>
     </div>
-    <a href="#" id="btnViewDetail" class="btn btn-view">
-      <i class="bi bi-eye"></i> Xem chi tiết
-    </a>
+    <div class="page-actions">
+      <a href="#" id="btnViewDetail" class="btn btn-view">
+        <i class="bi bi-eye"></i> Xem chi tiết
+      </a>
+    </div>
   </div>
 
   <!-- Changes indicator -->
@@ -137,6 +152,7 @@
             <option value="COMPLETED">Hoàn thành</option>
             <option value="CANCELLED">Đã huỷ</option>
           </select>
+          
         </div>
       </div>
 
@@ -164,7 +180,7 @@
           <select id="shipperName" onchange="markChanged('shipperName','Tài xế giao hàng')">
             <option value="">-- Đang tải danh sách tài xế... --</option>
           </select>
-          <div class="note-text">Danh sách tài xế có role SHIPPER trong hệ thống</div>
+          <div class="note-text">Danh sách tài xế có trong hệ thống</div>
         </div>
       </div>
 
@@ -207,6 +223,7 @@
 </div>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&subset=vietnamese&display=swap');
 :root{
   --white:#ffffff;
   --gray-50:#f8f9fa;
@@ -247,9 +264,14 @@ body{font-family:'Nunito',sans-serif;background:var(--gray-100);color:var(--gray
 .breadcrumb a:hover{color:var(--primary)}
 
 /* PAGE HEADER */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
-.page-header-left{display:flex;flex-direction:column;gap:6px}
-.page-title{font-size:24px;font-weight:800;color:var(--gray-900)}
+.page-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.page-eyebrow{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray-500);margin-bottom:4px}
+.page-title{font-size:28px;font-weight:800;color:var(--text-1);line-height:1.2;margin-bottom:4px}
+.page-title-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}
+.page-breadcrumb-inline{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--gray-500)}
+.page-breadcrumb-inline a{color:var(--gray-600);text-decoration:none}
+.page-breadcrumb-inline a:hover{color:var(--primary)}
+.page-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:6px}
 
 /* BADGE trạng thái hiện tại */
 .status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid transparent}
@@ -433,7 +455,7 @@ async function loadOrder() {
 /* ─── ĐIỀN FORM ─── */
 function fillForm(data) {
   // Cập nhật tiêu đề & breadcrumb
-  document.getElementById('pageTitle').textContent        = `Chỉnh sửa đơn hàng #DH-${data.id}`;
+  document.getElementById('pageTitle').textContent = `Chỉnh sửa đơn hàng #DH-${data.id}`;
   document.getElementById('breadcrumbDetail').textContent = `DH-${data.id}`;
   document.getElementById('breadcrumbDetail').href        = `/orders/${data.id}`;
   document.getElementById('btnViewDetail').href           = `/orders/${data.id}`;
@@ -642,10 +664,16 @@ async function submitEdit() {
     if (res.ok) {
       showToast('✅ Cập nhật đơn hàng thành công!', 'ok');
       changedFields.clear();
-      updateChangesBox();
-      // Xoá highlight cam
       document.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
-      setTimeout(() => window.location.href = `/orders/${ORDER_ID}`, 1600);
+      updateChangesBox();
+      // Reload lại dữ liệu mới nhất: PUT có thể trả về object đã cập nhật
+      if (data && data.id) {
+        originalData = data;
+        fillForm(data);
+      } else {
+        // Fallback: gọi GET lại để lấy data mới nhất
+        await loadOrder();
+      }
     } else {
       showToast('❌ ' + (data.message || 'Cập nhật thất bại!'), 'err');
     }
