@@ -6,207 +6,197 @@
 </head>
 <body>
 
-<div th:replace="~{fragments/layout :: main('Chỉnh sửa đơn hàng – DeliveryMgr', ~{::div.content})}">
+<!-- Topbar standalone (chỉ hiển thị khi mở file trực tiếp; Thymeleaf layout sẽ thay thế phần này) -->
+<nav class="topbar" th:remove="all">
+  <a class="topbar-brand" href="/">
+    <i class="bi bi-truck" style="font-size:18px"></i> DeliveryMgr
+  </a>
+  <div class="topbar-nav">
+    <a href="/orders" class="active">Đơn hàng</a>
+    <a href="/deliveries">Giao hàng</a>
+    <a href="/users">Người dùng</a>
+  </div>
+</nav>
+
+<div th:replace="~{fragments/layout :: main('Chi tiết đơn hàng – DeliveryMgr', ~{::div.content})}">
 
   <div class="content">
 
-  <!-- Breadcrumb -->
-  <div class="breadcrumb">
-    <a href="/orders">Đơn hàng</a>
-    <i class="bi bi-chevron-right" style="font-size:10px"></i>
-    <a href="#" id="breadcrumbDetail">Chi tiết</a>
-    <i class="bi bi-chevron-right" style="font-size:10px"></i>
-    <span>Chỉnh sửa</span>
-  </div>
-
-  <!-- Page header -->
-  <div class="page-header">
-    <div class="page-header-left">
-      <h1 class="page-title" id="pageTitle">Chỉnh sửa đơn hàng...</h1>
-      <span class="status-badge badge-NEW" id="statusBadge">Đang tải...</span>
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="/orders">Đơn hàng</a>
+      <i class="bi bi-chevron-right" style="font-size:10px"></i>
+      <span id="breadcrumbCurrent">Chi tiết</span>
     </div>
-    <a href="#" id="btnViewDetail" class="btn btn-view">
-      <i class="bi bi-eye"></i> Xem chi tiết
-    </a>
-  </div>
 
-  <!-- Changes indicator -->
-  <div class="changes-box" id="changesBox">
-    <div class="changes-title"><i class="bi bi-pencil-square"></i> Có thay đổi chưa lưu</div>
-    <div class="changes-list" id="changesList"></div>
-  </div>
+    <!-- Page header -->
+    <div class="page-header">
+      <div class="page-header-left">
+        <h1 class="page-title" id="pageTitle">Chi tiết đơn hàng...</h1>
+        <span class="status-badge badge-NEW" id="statusBadge">Đang tải...</span>
+      </div>
+      <div class="page-header-actions">
+        <a href="#" id="btnEdit" class="btn btn-outline">
+          <i class="bi bi-pencil"></i> Chỉnh sửa
+        </a>
+        <button class="btn btn-danger-outline" onclick="deleteOrder()">
+          <i class="bi bi-trash3"></i> Xóa đơn
+        </button>
+        <button class="btn btn-print" onclick="window.print()">
+          <i class="bi bi-printer"></i> In phiếu giao
+        </button>
+      </div>
+    </div>
 
-  <div class="form-layout">
+    <!-- Loading skeleton -->
+    <div id="mainSkeleton">
+      <div class="skeleton" style="height:180px;margin-bottom:16px;border-radius:8px"></div>
+      <div class="skeleton" style="height:280px;border-radius:8px"></div>
+    </div>
 
-    <!-- ══════ CỘT TRÁI ══════ -->
-    <div>
+    <!-- Main layout -->
+    <div class="detail-layout" id="mainLayout" style="display:none">
 
-      <!-- Thông tin khách hàng -->
-      <div class="panel">
-        <div class="panel-header">Thông tin khách hàng</div>
-        <div class="panel-body">
-          <div class="frow c2">
-            <div class="fg">
-              <label>Họ tên <span class="req">*</span></label>
-              <input type="text" id="customerName" placeholder="Nhập họ và tên..."/>
-            </div>
-            <div class="fg">
-              <label>Số điện thoại <span class="req">*</span></label>
-              <input type="tel" id="phone" placeholder="0xxx xxx xxx"/>
-            </div>
-          </div>
-          <div class="frow c1">
-            <div class="fg">
-              <label>Email</label>
-              <input type="email" id="email" placeholder="email@domain.com"/>
-            </div>
-          </div>
-          <div class="frow c1">
-            <div class="fg">
-              <label>Địa chỉ giao hàng <span class="req">*</span></label>
-              <input type="text" id="address" placeholder="Số nhà, tên đường..."/>
-            </div>
-          </div>
-          <div class="frow c1">
-            <div class="fg">
-              <label>Ghi chú giao hàng</label>
-              <textarea id="deliveryNote" placeholder="Ghi chú cho tài xế..."></textarea>
+      <!-- ══════ CỘT TRÁI ══════ -->
+      <div>
+
+        <!-- Thông tin khách hàng -->
+        <div class="panel">
+          <div class="panel-header">Thông tin khách hàng</div>
+          <div class="panel-body">
+            <div class="info-grid c2">
+              <div class="info-item">
+                <span class="info-label">Họ tên</span>
+                <span class="info-val" id="iCustomerName">—</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Số điện thoại</span>
+                <span class="info-val" id="iPhone">—</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-val" id="iEmail">—</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Ngày tạo đơn</span>
+                <span class="info-val" id="iCreatedAt">—</span>
+              </div>
+              <div class="info-item full">
+                <span class="info-label">Địa chỉ giao hàng</span>
+                <span class="info-val" id="iAddress">—</span>
+              </div>
+              <div class="info-item full" id="noteRow" style="display:none">
+                <span class="info-label">Ghi chú</span>
+                <span class="info-val note-val" id="iNote">—</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Sản phẩm -->
-      <div class="panel">
-        <div class="panel-header">Sản phẩm</div>
-        <div class="panel-body">
-
-          <!-- Loading skeleton -->
-          <div id="productSkeleton">
-            <div class="skeleton" style="margin-bottom:8px"></div>
-            <div class="skeleton" style="margin-bottom:8px"></div>
-          </div>
-
-          <div id="productSection" style="display:none">
+        <!-- Sản phẩm trong đơn -->
+        <div class="panel">
+          <div class="panel-header">Sản phẩm trong đơn</div>
+          <div class="panel-body" style="padding:0">
             <table class="ptable">
               <thead>
                 <tr>
-                  <th class="cn">Tên sản phẩm</th>
-                  <th class="cq">SL</th>
-                  <th class="cp">Đơn giá</th>
-                  <th class="ct">Thành tiền</th>
-                  <th class="cd"></th>
+                  <th style="width:42px;text-align:center">#</th>
+                  <th>Tên sản phẩm</th>
+                  <th style="width:90px;text-align:center">Số lượng</th>
+                  <th style="width:120px;text-align:right">Đơn giá</th>
+                  <th style="width:125px;text-align:right">Thành tiền</th>
                 </tr>
               </thead>
-              <tbody id="ptbody"></tbody>
+              <tbody id="productTbody">
+                <tr><td colspan="5" class="empty-row">Đang tải...</td></tr>
+              </tbody>
             </table>
-            <button class="btn-add-row" type="button" onclick="addRow()">
-              <i class="bi bi-plus-lg"></i> Thêm sản phẩm
-            </button>
-            <div class="summary">
-              <div class="srow">
-                <span>Tạm tính:</span>
-                <span id="subtotal">0đ</span>
-              </div>
-              <div class="srow">
-                <span>Phí giao hàng:</span>
-                <input type="number" id="shippingFee" value="0" min="0" step="1000" oninput="calcSummary(); markChanged('shippingFee','Phí giao hàng')"/>
+            <div class="summary-section">
+              <div class="srow"><span>Tạm tính:</span><span id="iSubtotal">—</span></div>
+              <div class="srow"><span>Phí giao:</span><span id="iShippingFee">—</span></div>
+              <div class="srow" id="discountRow" style="display:none">
+                <span>Giảm giá:</span><span id="iDiscount" style="color:var(--danger);font-weight:600">—</span>
               </div>
               <div class="stotal">
-                <span>Tổng:</span>
-                <span id="grandtotal">0đ</span>
+                <span>Tổng cộng:</span><span id="iTotal">—</span>
               </div>
             </div>
           </div>
-
         </div>
+
       </div>
 
-    </div>
+      <!-- ══════ CỘT PHẢI ══════ -->
+      <div>
 
-    <!-- ══════ CỘT PHẢI ══════ -->
-    <div>
 
-      <!-- Trạng thái đơn -->
-      <div class="panel">
-        <div class="panel-header">Trạng thái đơn</div>
-        <div class="panel-body">
-          <select id="status" onchange="markChanged('status','Trạng thái đơn'); updateStatusBadge()">
-            <option value="NEW">Mới tạo</option>
-            <option value="CONFIRMED">Đã xác nhận</option>
-            <option value="COMPLETED">Hoàn thành</option>
-            <option value="CANCELLED">Đã huỷ</option>
-          </select>
-        </div>
-      </div>
 
-      <!-- Thanh toán -->
-      <div class="panel">
-        <div class="panel-header">Thanh toán</div>
-        <div class="panel-body">
-          <select id="paymentMethod" style="margin-bottom:10px" onchange="markChanged('paymentMethod','Phương thức thanh toán')">
-            <option value="">Hình thức ▾</option>
-            <option value="COD">Tiền mặt (COD)</option>
-            <option value="Chuyển khoản">Chuyển khoản</option>
-            <option value="Ví điện tử">Ví điện tử</option>
-          </select>
-          <div class="check-row">
-            <input type="checkbox" id="paid" onchange="markChanged('paid','Trạng thái thanh toán')"/>
-            <label for="paid">Đã thanh toán</label>
+        <!-- Trạng thái đơn hàng (chỉ xem) -->
+        <div class="panel">
+          <div class="panel-header">Trạng thái đơn hàng</div>
+          <div class="panel-body" style="padding:14px 16px">
+            <span class="status-badge-lg" id="statusBadgeLg">Đang tải...</span>
           </div>
         </div>
-      </div>
 
-      <!-- Phân công tài xế -->
-      <div class="panel">
-        <div class="panel-header">Phân công tài xế</div>
-        <div class="panel-body">
-          <select id="shipperName" onchange="markChanged('shipperName','Tài xế giao hàng')">
-            <option value="">-- Đang tải danh sách tài xế... --</option>
-          </select>
-          <div class="note-text">Danh sách tài xế có role SHIPPER trong hệ thống</div>
-        </div>
-      </div>
+        <!-- Tài xế giao hàng -->
+        <div class="panel">
+          <div class="panel-header">Tài xế giao hàng</div>
+          <div class="panel-body">
+            <!-- Thông tin tài xế hiện tại -->
+            <div id="shipperInfo" style="display:none;margin-bottom:12px">
+              <div class="shipper-card">
+                <div class="shipper-avatar" id="shipperAvatar">TX</div>
+                <div class="shipper-detail">
+                  <div class="shipper-name" id="iShipperName">—</div>
+                  <div class="shipper-meta">SĐT: <span id="iShipperPhone">—</span></div>
+                  <div class="shipper-meta">Xe: <span id="iVehicle">—</span></div>
+                </div>
+              </div>
+            </div>
+            <div id="shipperEmpty" class="empty-shipper">
+              <i class="bi bi-person-x" style="font-size:22px;color:var(--gray-400)"></i>
+              <span>Chưa phân công tài xế</span>
+            </div>
 
-      <!-- Thời gian giao dự kiến -->
-      <div class="panel">
-        <div class="panel-header">Thời gian giao dự kiến</div>
-        <div class="panel-body">
-          <input type="date" id="deliveryDate" style="margin-bottom:10px" onchange="markChanged('deliveryDate','Ngày giao')"/>
-          <div style="display:flex;gap:8px;align-items:center">
-            <input type="time" id="timeFrom" value="08:00" style="flex:1" onchange="markChanged('timeFrom','Giờ giao')"/>
-            <span style="color:var(--gray-500);font-weight:700">–</span>
-            <input type="time" id="timeTo" value="12:00" style="flex:1" onchange="markChanged('timeTo','Giờ giao')"/>
           </div>
         </div>
+
+        <!-- Thanh toán -->
+        <div class="panel">
+          <div class="panel-header">Thanh toán</div>
+          <div class="panel-body">
+            <div class="info-item" style="margin-bottom:10px">
+              <span class="info-label">Hình thức</span>
+              <span class="info-val" id="iPayMethod">—</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">Trạng thái</span>
+              <span id="iPayStatus" class="pay-badge pay-unpaid">Chưa thu</span>
+            </div>
+          </div>
+        </div>
+
       </div>
 
-    </div>
+    </div><!-- /detail-layout -->
 
-    <!-- ══════ ACTION BAR ══════ -->
-    <div class="action-bar">
-      <p class="val-note">
-        * Trường bắt buộc tô đỏ nếu để trống. Field bị sửa hiện <b>viền cam</b>.
-      </p>
-      <button class="btn btn-outline" onclick="goBack()">
-        <i class="bi bi-x-lg"></i> Huỷ bỏ
-      </button>
-      <button class="btn btn-outline" onclick="resetForm()" title="Khôi phục dữ liệu gốc">
-        <i class="bi bi-arrow-counterclockwise"></i> Hoàn tác
-      </button>
-      <button class="btn btn-save" id="submitBtn" onclick="submitEdit()">
-        <div class="spinner" id="spin"></div>
-        <i class="bi bi-floppy" id="submitIco"></i>
-        Lưu thay đổi
-      </button>
+    <!-- Error state -->
+    <div id="errorState" style="display:none;text-align:center;padding:60px 20px;color:var(--danger)">
+      <i class="bi bi-exclamation-triangle" style="font-size:36px;display:block;margin-bottom:12px"></i>
+      <p id="errorMsg" style="font-size:14px;font-weight:600">Không tải được dữ liệu</p>
+      <a href="/orders" style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;
+        padding:8px 18px;border-radius:6px;border:1.5px solid #dee2e6;color:#495057;
+        font-weight:700;text-decoration:none;font-size:13px">
+        <i class="bi bi-arrow-left"></i> Quay lại danh sách
+      </a>
     </div>
-
-</div>
 
   </div>
 </div>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&subset=vietnamese&display=swap');
 :root{
   --white:#ffffff;
   --gray-50:#f8f9fa;
@@ -247,26 +237,24 @@ body{font-family:'Nunito',sans-serif;background:var(--gray-100);color:var(--gray
 .breadcrumb a:hover{color:var(--primary)}
 
 /* PAGE HEADER */
-.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
 .page-header-left{display:flex;flex-direction:column;gap:6px}
-.page-title{font-size:24px;font-weight:800;color:var(--gray-900)}
+.page-title{font-size:28px;font-weight:800;color:var(--text-1);line-height:1.2;margin-bottom:4px}
+.page-header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 
-/* BADGE trạng thái hiện tại */
-.status-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid transparent}
+/* STATUS BADGE */
+.status-badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid transparent}
 .badge-NEW       {background:#e8f0fe;color:#1a56db;border-color:#b6ccf7}
 .badge-CONFIRMED {background:#fff3cd;color:#856404;border-color:#ffe08a}
+.badge-PROCESSING{background:#fff3cd;color:#856404;border-color:#ffe08a}
+.badge-SHIPPING  {background:#cff4fc;color:#0a7899;border-color:#9ee8f8}
 .badge-COMPLETED {background:var(--success-light);color:var(--success);border-color:#a3cfbb}
 .badge-CANCELLED {background:var(--danger-light);color:var(--danger);border-color:#f5c6cb}
-.badge-PROCESSING{background:#fff3cd;color:#856404;border-color:#ffe08a}
-.badge-SHIPPING {background:#cff4fc;color:#0a7899;border-color:#9ee8f8}
-.badge-DONE     {background:var(--success-light);color:var(--success);border-color:#a3cfbb}
-.badge-CANCEL   {background:var(--danger-light);color:var(--danger);border-color:#f5c6cb}
-
-/* CHANGE INDICATOR — highlight field khi bị sửa */
-.changed{border-color:var(--warning)!important;box-shadow:0 0 0 3px rgba(253,126,20,.12)!important}
+.badge-DONE      {background:var(--success-light);color:var(--success);border-color:#a3cfbb}
+.badge-CANCEL    {background:var(--danger-light);color:var(--danger);border-color:#f5c6cb}
 
 /* LAYOUT */
-.form-layout{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+.detail-layout{display:grid;grid-template-columns:1fr 280px;gap:16px;align-items:start}
 
 /* PANEL */
 .panel{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
@@ -274,447 +262,263 @@ body{font-family:'Nunito',sans-serif;background:var(--gray-100);color:var(--gray
 .panel-header{padding:10px 16px;border-bottom:1.5px dashed var(--gray-200);font-size:11.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray-600)}
 .panel-body{padding:16px}
 
-/* FORM */
-.frow{display:grid;gap:12px;margin-bottom:12px}
-.frow.c2{grid-template-columns:1fr 1fr}
-.frow.c1{grid-template-columns:1fr}
-.frow:last-child{margin-bottom:0}
-.fg{display:flex;flex-direction:column;gap:4px}
-label{font-size:12.5px;font-weight:700;color:var(--gray-700)}
-label .req{color:var(--danger);margin-left:2px}
+/* INFO GRID */
+.info-grid{display:grid;gap:14px}
+.info-grid.c2{grid-template-columns:1fr 1fr}
+.info-item{display:flex;flex-direction:column;gap:3px}
+.info-item.full{grid-column:1/-1}
+.info-label{font-size:11.5px;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px}
+.info-val{font-size:13.5px;font-weight:600;color:var(--gray-800)}
+.note-val{font-style:italic;color:var(--gray-600);font-weight:400}
 
-input[type=text],input[type=email],input[type=tel],input[type=number],
-input[type=date],input[type=time],select,textarea{
-  width:100%;border:1px solid var(--gray-400);border-radius:var(--radius);
-  padding:8px 10px;font-family:inherit;font-size:13.5px;color:var(--gray-800);
-  background:var(--white);outline:none;transition:border-color .15s,box-shadow .15s
-}
-input:focus,select:focus,textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.12)}
-input.invalid,select.invalid{border-color:var(--danger)!important;box-shadow:0 0 0 3px rgba(220,53,69,.10)!important}
-input::placeholder,textarea::placeholder{color:var(--gray-400);font-size:13px}
-textarea{resize:vertical;min-height:72px}
-
-/* CHECKBOX */
-.check-row{display:flex;align-items:center;gap:8px;margin-top:6px}
-.check-row input[type=checkbox]{width:15px;height:15px;cursor:pointer;accent-color:var(--primary)}
-.check-row label{font-size:13px;font-weight:600;color:var(--gray-700);cursor:pointer;margin:0}
-
-/* TABLE */
+/* PRODUCT TABLE */
 .ptable{width:100%;border-collapse:collapse;font-size:13px}
-.ptable thead th{background:var(--gray-50);padding:8px 10px;text-align:left;font-weight:700;font-size:12px;color:var(--gray-600);border-bottom:1.5px solid var(--gray-200)}
+.ptable thead th{background:var(--gray-50);padding:9px 12px;text-align:left;font-weight:700;font-size:12px;color:var(--gray-600);border-bottom:1.5px solid var(--gray-200)}
 .ptable tbody tr{border-bottom:1px solid var(--gray-200)}
-.ptable tbody td{padding:6px 8px;vertical-align:middle}
-.ptable input{padding:6px 8px;font-size:13px}
-.cn{min-width:180px}.cq{width:70px}.cp{width:110px}.ct{width:110px;font-weight:600;color:var(--gray-700)}.cd{width:40px;text-align:center}
-
-.btn-del{background:var(--white);border:1px solid var(--gray-300);border-radius:4px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;color:var(--danger);cursor:pointer;font-size:13px;transition:all .15s}
-.btn-del:hover{background:var(--danger-light);border-color:var(--danger)}
-
-.btn-add-row{display:inline-flex;align-items:center;gap:6px;background:none;border:1px dashed var(--gray-400);border-radius:var(--radius);padding:7px 14px;font-family:inherit;font-size:13px;font-weight:600;color:var(--gray-600);cursor:pointer;margin-top:10px;transition:all .15s}
-.btn-add-row:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light)}
+.ptable tbody tr:last-child{border-bottom:none}
+.ptable tbody td{padding:9px 12px;vertical-align:middle}
+.empty-row{text-align:center;padding:24px;color:var(--gray-500);font-style:italic}
 
 /* SUMMARY */
-.summary{margin-top:14px;padding-top:14px;border-top:1px solid var(--gray-200)}
-.srow{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--gray-600);margin-bottom:8px}
-.srow input[type=number]{width:120px;text-align:right;padding:5px 8px;font-size:13px}
-.stotal{display:flex;justify-content:space-between;align-items:center;font-size:16px;font-weight:800;color:var(--gray-900);border-top:1.5px solid var(--gray-300);padding-top:10px;margin-top:4px}
+.summary-section{padding:14px 16px;border-top:1px solid var(--gray-200)}
+.srow{display:flex;justify-content:space-between;font-size:13px;color:var(--gray-600);margin-bottom:7px}
+.stotal{display:flex;justify-content:space-between;font-size:16px;font-weight:800;color:var(--gray-900);border-top:1.5px solid var(--gray-300);padding-top:10px;margin-top:4px}
 
-/* NOTE */
-.note-text{font-size:11.5px;color:var(--gray-500);margin-top:4px}
+/* SELECT */
+select{width:100%;border:1px solid var(--gray-400);border-radius:var(--radius);padding:8px 10px;font-family:inherit;font-size:13.5px;color:var(--gray-800);background:var(--white);outline:none;transition:border-color .15s,box-shadow .15s;cursor:pointer}
+select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(26,86,219,.12)}
 
-/* CHANGES SUMMARY BOX */
-.changes-box{background:#fff8f0;border:1.5px solid #ffc07a;border-radius:var(--radius);padding:10px 14px;margin-bottom:12px;display:none}
-.changes-box.show{display:block}
-.changes-title{font-size:11.5px;font-weight:700;color:var(--warning);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
-.changes-list{font-size:12.5px;color:var(--gray-700);display:flex;flex-direction:column;gap:3px}
-.change-item{display:flex;gap:6px;align-items:flex-start}
-.change-item i{color:var(--warning);flex-shrink:0;margin-top:1px}
+/* SHIPPER */
+.empty-shipper{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0;color:var(--gray-500);font-size:13px;margin-bottom:4px}
+.shipper-card{display:flex;align-items:center;gap:12px;padding:10px;background:var(--gray-50);border-radius:var(--radius);border:1px solid var(--gray-200)}
+.shipper-avatar{width:40px;height:40px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.shipper-name{font-size:13.5px;font-weight:700;color:var(--gray-900);margin-bottom:2px}
+.shipper-meta{font-size:12px;color:var(--gray-500)}
 
-/* LOADING SKELETON */
-.skeleton{background:linear-gradient(90deg,var(--gray-200) 25%,var(--gray-100) 50%,var(--gray-200) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:4px;height:36px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* PAYMENT BADGE */
+.pay-badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;border:1.5px solid transparent}
+.pay-paid  {background:var(--success-light);color:var(--success);border-color:#a3cfbb}
+.pay-unpaid{background:#fff3cd;color:#856404;border-color:#ffe08a}
+.status-badge-lg{display:inline-flex;align-items:center;padding:6px 14px;border-radius:20px;font-size:13px;font-weight:800;border:1.5px solid transparent}
 
-/* ACTION BAR */
-.action-bar{background:var(--white);border:1px solid var(--gray-300);border-radius:var(--radius);padding:14px 20px;display:flex;justify-content:flex-end;align-items:center;gap:10px;grid-column:1/-1}
-.val-note{font-size:12px;color:var(--gray-500);flex:1;font-style:italic}
-.val-note b{color:var(--danger)}
-
-.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 20px;border-radius:var(--radius);font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;transition:all .15s;border:none;text-decoration:none}
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius);font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s;border:none;text-decoration:none}
 .btn-outline{background:var(--white);border:1.5px solid var(--gray-400);color:var(--gray-700)}
 .btn-outline:hover{border-color:var(--gray-600);color:var(--gray-900)}
-.btn-view{background:var(--gray-100);border:1.5px solid var(--gray-300);color:var(--gray-600)}
-.btn-view:hover{border-color:var(--gray-500);color:var(--gray-800)}
-.btn-save{background:var(--gray-900);border:1.5px solid var(--gray-900);color:#fff}
-.btn-save:hover{background:#000}
-.btn-save:disabled{opacity:.6;cursor:not-allowed}
+.btn-danger-outline{background:var(--white);border:1.5px solid #f5c6cb;color:var(--danger)}
+.btn-danger-outline:hover{background:var(--danger-light);border-color:var(--danger)}
+.btn-print{background:var(--gray-900);border:1.5px solid var(--gray-900);color:#fff}
+.btn-print:hover{background:#000}
 
-/* SPINNER */
-.spinner{width:14px;height:14px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
-@keyframes spin{to{transform:rotate(360deg)}}
 
+/* LOADING SKELETON */
+.skeleton{background:linear-gradient(90deg,var(--gray-200) 25%,var(--gray-100) 50%,var(--gray-200) 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;border-radius:var(--radius)}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 @media(max-width:860px){
-  .form-layout{grid-template-columns:1fr}
-  .frow.c2{grid-template-columns:1fr}
+  .detail-layout{grid-template-columns:1fr}
+  .info-grid.c2{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .info-grid.c2{grid-template-columns:1fr}
+  .page-header{flex-direction:column}
 }
 </style>
 
 <script>
-/* ─── CONFIG ───────────────────────────────────────────────
-   Khi chạy qua Spring Boot: const API_BASE = '';
-   Khi test file trực tiếp:  const API_BASE = 'http://localhost:8080';
-──────────────────────────────────────────────────────────── */
+/* ─── CONFIG ─────────────────────────────────────────────
+   Spring Boot: const API_BASE = '';
+   Test file:   const API_BASE = 'http://localhost:8080';
+──────────────────────────────────────────────────────── */
 const API_BASE   = '';
 const ORDERS_URL = '/orders';
 
 /* ─── LẤY ORDER ID TỪ URL ─── */
-// Hỗ trợ cả 2 dạng:
-//   /orders/5/edit   → 5
-//   ?id=5            → 5
 function getOrderId() {
   const parts = window.location.pathname.split('/').filter(Boolean);
   const idx   = parts.indexOf('orders');
-  if (idx !== -1 && parts[idx + 1] && parts[idx + 1] !== 'edit')
-    return parts[idx + 1];
+  if (idx !== -1 && parts[idx + 1]) return parts[idx + 1];
   return new URLSearchParams(window.location.search).get('id');
 }
 const ORDER_ID = getOrderId();
+let currentOrder = null;
 
-/* ─── STATE ─── */
-let originalData  = null;   // data gốc từ API (để so sánh thay đổi & reset)
-let changedFields = new Set();
-let rid           = 0;
+const STATUS_LABEL = {
+  NEW      : 'Mới tạo',
+  CONFIRMED: 'Đã xác nhận',
+  COMPLETED: 'Hoàn thành',
+  CANCELLED: 'Đã huỷ',
+  // Legacy values từ delivery module
+  PROCESSING: 'Đang lấy hàng',
+  SHIPPING  : 'Đang giao',
+  DONE      : 'Hoàn thành',
+  CANCEL    : 'Đã huỷ'
+};
 
-/* ─── LOAD DATA TỪ API ─── */
-
-/* ─── LOAD SHIPPERS ─── */
-async function loadShippers(selectedName = '') {
-  const sel = document.getElementById('shipperName');
-  if (!sel) return;
-  sel.innerHTML = `<option value="">-- Đang tải... --</option>`;
-  try {
-    const res  = await fetch(API_BASE + '/api/deliveries/shippers');
-    const list = await res.json();
-    if (!Array.isArray(list) || list.length === 0) {
-      sel.innerHTML = `<option value="">-- Chưa có tài xế nào (role SHIPPER) --</option>`;
-      return;
-    }
-    sel.innerHTML = `<option value="">-- Chưa phân công --</option>` +
-      list.map(s =>
-        `<option value="${s.fullName||''}"` +
-        ` data-phone="${s.phone||''}"` +
-        ` data-vehicle="${s.vehicleInfo||''}"` +
-        ` ${s.fullName === selectedName ? 'selected' : ''}>` +
-        `${s.fullName||''} (${s.username||''})</option>`
-      ).join('');
-  } catch(e) {
-    sel.innerHTML = `<option value="">-- Lỗi tải danh sách tài xế --</option>`;
-    console.error('loadShippers:', e);
-  }
-}
-
+/* ─── LOAD ORDER ─── */
 async function loadOrder() {
-  if (!ORDER_ID) {
-    showError('Không tìm thấy ID đơn hàng trong URL!');
-    return;
-  }
+  if (!ORDER_ID) { showError('Không tìm thấy ID đơn hàng trong URL!'); return; }
   try {
     const res  = await fetch(API_BASE + '/api/orders/' + ORDER_ID);
     if (!res.ok) throw new Error();
     const data = await res.json();
     if (data.message) throw new Error(data.message);
-    originalData = data;
-    fillForm(data);
+    currentOrder = data;
+    renderPage(data);
   } catch {
     showError('Không tải được đơn hàng ID: ' + ORDER_ID + '. Kiểm tra backend đang chạy.');
   }
 }
 
-/* ─── ĐIỀN FORM ─── */
-function fillForm(data) {
-  // Cập nhật tiêu đề & breadcrumb
-  document.getElementById('pageTitle').textContent        = `Chỉnh sửa đơn hàng #DH-${data.id}`;
-  document.getElementById('breadcrumbDetail').textContent = `DH-${data.id}`;
-  document.getElementById('breadcrumbDetail').href        = `/orders/${data.id}`;
-  document.getElementById('btnViewDetail').href           = `/orders/${data.id}`;
+/* ─── RENDER PAGE ─── */
+function renderPage(d) {
+  // Breadcrumb & title
+  setText('breadcrumbCurrent', `DH-${d.id}`);
+  setText('pageTitle', `Chi tiết đơn hàng #DH-${d.id}`);
+  document.getElementById('btnEdit').href = `/orders/${d.id}/edit`;
 
-  // Cập nhật badge trạng thái
+  // Status badge (header) + readonly status panel
   const badgeEl = document.getElementById('statusBadge');
-  const ST = { NEW:'Mới tạo', CONFIRMED:'Đã xác nhận', COMPLETED:'Hoàn thành', CANCELLED:'Đã huỷ' };
-  badgeEl.textContent  = ST[data.status] || data.status;
-  badgeEl.className    = `status-badge badge-${data.status}`;
-
-  // Điền các field
-  setValue('customerName', data.customerName);
-  setValue('phone',        data.phone);
-  setValue('email',        data.email);
-  setValue('address',      data.address);
-  setValue('deliveryNote', data.delivery?.note || data.deliveryNote || '');
-  setValue('status',       data.status);
-  setValue('paymentMethod',data.paymentMethod);
-  // Load danh sách shipper rồi set selected = tài xế hiện tại
-  // shipperName nằm trong delivery object, không phải trực tiếp trong order
-  const currentShipper = data.delivery?.shipperName || data.shipperName || '';
-  loadShippers(currentShipper);
-  setValue('shippingFee',  data.shippingFee ?? 0);
-
-  // Tự tích "Đã thanh toán" nếu paymentStatus là paid HOẶC order đã COMPLETED
-  const isPaid = data.paymentStatus === 'Đã thanh toán'
-              || data.paymentStatus === 'PAID'
-              || data.status === 'COMPLETED';
-  document.getElementById('paid').checked = isPaid;
-
-  // Parse expectedTime → date + timeFrom + timeTo
-  // Format lưu: "2026-03-21 08:00 – 12:00" hoặc "08:00 – 12:00"
-  const expectedTime = (data.delivery?.expectedTime || data.expectedTime || '').trim();
-  if (expectedTime) {
-    // Tách date (nếu có) và phần giờ
-    // Format: "2026-03-05 08:00 – 12:00" hoặc "08:00 – 12:00"
-    const dateMatch = expectedTime.match(/^(\d{4}-\d{2}-\d{2})\s+(.+)/);
-    let datePart = '', timePart = expectedTime;
-    if (dateMatch) {
-      datePart = dateMatch[1];   // "2026-03-05"
-      timePart = dateMatch[2];   // "08:00 – 12:00"
-    }
-    // Tách giờ bằng dấu – hoặc - (chỉ trong phần timePart, không đụng vào date)
-    const times = timePart.split(/\s*[–-]\s*/).map(s => s.trim()).filter(Boolean);
-    if (datePart)  document.getElementById('deliveryDate').value = datePart;
-    document.getElementById('timeFrom').value = times[0] || '08:00';
-    document.getElementById('timeTo').value   = times[1] || '12:00';
+  badgeEl.textContent = STATUS_LABEL[d.status] || d.status;
+  badgeEl.className   = `status-badge badge-${d.status}`;
+  const lgBadge = document.getElementById('statusBadgeLg');
+  if (lgBadge) {
+    lgBadge.textContent = STATUS_LABEL[d.status] || d.status;
+    lgBadge.className   = `status-badge-lg badge-${d.status}`;
   }
 
-  // Điền sản phẩm
-  document.getElementById('ptbody').innerHTML = '';
-  rid = 0;
-  (data.orderDetails || []).forEach(item => {
-    addRow(item.productName, item.quantity, item.price);
-  });
-  if ((data.orderDetails || []).length === 0) addRow();
+  // Thông tin khách hàng
+  setText('iCustomerName', d.customerName);
+  setText('iPhone',        d.phone);
+  setText('iEmail',        d.email || '—');
+  setText('iAddress',      d.address);
 
-  // Hiện bảng sản phẩm, ẩn skeleton
-  document.getElementById('productSkeleton').style.display = 'none';
-  document.getElementById('productSection').style.display  = 'block';
+  // Ngày tạo
+  if (d.createdAt) {
+    const dt = new Date(d.createdAt);
+    const pad = n => String(n).padStart(2,'0');
+    setText('iCreatedAt', `${pad(dt.getDate())}/${pad(dt.getMonth()+1)} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`);
+  } else { setText('iCreatedAt', '—'); }
 
-  calcSummary();
-  changedFields.clear();
-  updateChangesBox();
-}
-
-function setValue(id, val) {
-  const el = document.getElementById(id);
-  if (el) el.value = val ?? '';
-}
-
-/* ─── PRODUCT ROWS ─── */
-function addRow(name='', qty=1, price=0) {
-  rid++;
-  const id = rid;
-  const tr = document.createElement('tr');
-  tr.id = 'row-' + id;
-  tr.innerHTML = `
-    <td class="cn"><input type="text" value="${esc(name)}" placeholder="Nhập tên SP..."
-        oninput="calcSummary(); markChanged('products','Danh sách sản phẩm')"/></td>
-    <td class="cq"><input type="number" value="${qty}" min="1"
-        oninput="calcRow(${id}); markChanged('products','Danh sách sản phẩm')"/></td>
-    <td class="cp"><input type="number" value="${price}" min="0" step="1000"
-        oninput="calcRow(${id}); markChanged('products','Danh sách sản phẩm')"/></td>
-    <td class="ct" id="rt-${id}">${fmt(qty * price)}</td>
-    <td class="cd">
-      <button class="btn-del" type="button" onclick="delRow(${id})" title="Xoá dòng">
-        <i class="bi bi-x"></i>
-      </button>
-    </td>`;
-  document.getElementById('ptbody').appendChild(tr);
-  calcSummary();
-}
-
-function delRow(id) {
-  document.getElementById('row-' + id)?.remove();
-  markChanged('products','Danh sách sản phẩm');
-  calcSummary();
-}
-
-function calcRow(id) {
-  const row = document.getElementById('row-' + id);
-  if (!row) return;
-  const ns = row.querySelectorAll('input[type=number]');
-  document.getElementById('rt-' + id).textContent = fmt((parseFloat(ns[0]?.value)||0) * (parseFloat(ns[1]?.value)||0));
-  calcSummary();
-}
-
-function calcSummary() {
-  let sub = 0;
-  document.querySelectorAll('#ptbody tr').forEach(r => {
-    const ns = r.querySelectorAll('input[type=number]');
-    if (ns.length >= 2) sub += (parseFloat(ns[0].value)||0) * (parseFloat(ns[1].value)||0);
-  });
-  const ship = parseFloat(document.getElementById('shippingFee').value)||0;
-  document.getElementById('subtotal').textContent   = fmt(sub);
-  document.getElementById('grandtotal').textContent = fmt(sub + ship);
-}
-
-/* ─── CHANGE TRACKING ─── */
-function markChanged(fieldId, label) {
-  changedFields.set(fieldId, label);
-  // Thêm highlight cam vào input nếu có
-  const el = document.getElementById(fieldId);
-  if (el && el.tagName !== 'SELECT') el.classList.add('changed');
-  updateChangesBox();
-}
-
-function updateChangesBox() {
-  const box  = document.getElementById('changesBox');
-  const list = document.getElementById('changesList');
-  if (changedFields.size === 0) {
-    box.classList.remove('show');
-    return;
+  // Ghi chú
+  const note = d.deliveryNote || d.delivery?.note || '';
+  if (note) {
+    setText('iNote', note);
+    document.getElementById('noteRow').style.display = '';
   }
-  box.classList.add('show');
-  list.innerHTML = [...changedFields.values()].map(label =>
-    `<div class="change-item"><i class="bi bi-circle-fill" style="font-size:6px;margin-top:5px"></i><span>${label}</span></div>`
-  ).join('');
+
+  // Sản phẩm
+  renderProducts(d.orderDetails || [], d.shippingFee || 0, d.discount || 0, d.totalAmount);
+
+  // Tài xế
+  renderShipper(d);
+
+  // Thanh toán
+  setText('iPayMethod', d.paymentMethod || '—');
+  const isPaid = d.paymentStatus === 'Đã thanh toán' || d.paymentStatus === 'PAID' || d.status === 'COMPLETED';
+  const payEl  = document.getElementById('iPayStatus');
+  payEl.textContent = isPaid ? 'Đã thanh toán' : 'Chưa thu';
+  payEl.className   = 'pay-badge ' + (isPaid ? 'pay-paid' : 'pay-unpaid');
+
+  // Hiện layout
+  document.getElementById('mainSkeleton').style.display = 'none';
+  document.getElementById('mainLayout').style.display   = 'grid';
 }
 
-function updateStatusBadge() {
-  const st  = document.getElementById('status').value;
-  const ST = { NEW:'Mới tạo', CONFIRMED:'Đã xác nhận', COMPLETED:'Hoàn thành', CANCELLED:'Đã huỷ' };
-  const el  = document.getElementById('statusBadge');
-  el.textContent = ST[st] || st;
-  el.className   = `status-badge badge-${st}`;
+/* ─── RENDER PRODUCTS ─── */
+function renderProducts(items, shippingFee, discount, totalAmount) {
+  const tbody = document.getElementById('productTbody');
+  if (items.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-row">Không có sản phẩm</td></tr>`;
+  } else {
+    tbody.innerHTML = items.map((it, i) => {
+      const sub = (it.quantity || 0) * (it.price || 0);
+      return `<tr>
+        <td style="text-align:center;color:var(--gray-500);font-weight:600">${i + 1}</td>
+        <td style="font-weight:600">${esc(it.productName || '—')}</td>
+        <td style="text-align:center">${it.quantity || 0}</td>
+        <td style="text-align:right;color:var(--gray-600)">${fmt(it.price || 0)}</td>
+        <td style="text-align:right;font-weight:700;color:var(--gray-900)">${fmt(sub)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const sub = items.reduce((s, it) => s + (it.quantity||0) * (it.price||0), 0);
+  setText('iSubtotal',    fmt(sub));
+  setText('iShippingFee', fmt(shippingFee));
+
+  if (discount && discount > 0) {
+    setText('iDiscount', '– ' + fmt(discount));
+    document.getElementById('discountRow').style.display = '';
+  }
+
+  const total = totalAmount != null ? totalAmount : (sub + shippingFee - (discount || 0));
+  setText('iTotal', fmt(total));
 }
 
-/* ─── VALIDATE ─── */
-function validate() {
-  let ok = true;
-  ['customerName','phone','address'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el.value.trim()) { el.classList.add('invalid'); ok = false; }
-    else el.classList.remove('invalid');
-  });
-  if (!ok) showToast('Vui lòng điền đầy đủ các trường bắt buộc (*)', 'err');
-  return ok;
+/* ─── RENDER SHIPPER ─── */
+function renderShipper(d) {
+  const name    = d.delivery?.shipperName  || d.shipperName  || '';
+  const phone   = d.delivery?.shipperPhone || d.shipperPhone || '';
+  const vehicle = d.delivery?.vehicleInfo  || d.vehicleInfo  || '';
+
+  if (name) {
+    const initials = name.split(' ').slice(-2).map(w => w[0]?.toUpperCase() || '').join('');
+    setText('shipperAvatar', initials || 'TX');
+    setText('iShipperName',  name);
+    setText('iShipperPhone', phone   || '—');
+    setText('iVehicle',      vehicle || '—');
+    document.getElementById('shipperInfo').style.display  = 'block';
+    document.getElementById('shipperEmpty').style.display = 'none';
+  } else {
+    document.getElementById('shipperInfo').style.display  = 'none';
+    document.getElementById('shipperEmpty').style.display = 'flex';
+  }
 }
 
-/* ─── BUILD PAYLOAD ─── */
-function buildPayload() {
-  const rows = [];
-  document.querySelectorAll('#ptbody tr').forEach(r => {
-    const nameEl = r.querySelector('input[type=text]');
-    const nums   = r.querySelectorAll('input[type=number]');
-    const name   = nameEl?.value.trim();
-    if (name) rows.push({
-      productName: name,
-      quantity   : parseInt(nums[0]?.value)   || 0,
-      price      : parseFloat(nums[1]?.value) || 0
-    });
-  });
-  const tf = document.getElementById('timeFrom').value;
-  const tt = document.getElementById('timeTo').value;
-  const dd = document.getElementById('deliveryDate').value;
-  return {
-    customerName : document.getElementById('customerName').value.trim(),
-    phone        : document.getElementById('phone').value.trim(),
-    email        : document.getElementById('email').value.trim(),
-    address      : document.getElementById('address').value.trim(),
-    status       : document.getElementById('status').value,
-    paymentMethod: document.getElementById('paymentMethod').value,
-    paymentStatus: document.getElementById('paid').checked ? 'Đã thanh toán' : 'Chưa thu',
-    shipperName  : document.getElementById('shipperName').value.trim(),
-    deliveryNote : document.getElementById('deliveryNote').value.trim(),
-    expectedTime : dd ? `${dd} ${tf} – ${tt}` : `${tf} – ${tt}`,
-    shippingFee  : parseFloat(document.getElementById('shippingFee').value) || 0,
-    discount     : originalData?.discount ?? 0,
-    orderDetails : rows
-  };
-}
-
-/* ─── SUBMIT — gọi PUT /api/orders/{id} ─── */
-async function submitEdit() {
-  if (!validate()) return;
-  setLoading(true);
+/* ─── LOAD SHIPPERS COMBOBOX ─── */
+/* ─── XÓA ĐƠN ─── */
+async function deleteOrder() {
+  if (!confirm(`Bạn có chắc muốn xóa đơn hàng #DH-${ORDER_ID}?\nThao tác này không thể hoàn tác.`)) return;
   try {
-    const res  = await fetch(API_BASE + '/api/orders/' + ORDER_ID, {
-      method : 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body   : JSON.stringify(buildPayload())
-    });
-    const data = await res.json().catch(() => ({}));
-    if (res.ok) {
-      showToast('✅ Cập nhật đơn hàng thành công!', 'ok');
-      changedFields.clear();
-      updateChangesBox();
-      // Xoá highlight cam
-      document.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
-      setTimeout(() => window.location.href = `/orders/${ORDER_ID}`, 1600);
-    } else {
-      showToast('❌ ' + (data.message || 'Cập nhật thất bại!'), 'err');
-    }
-  } catch {
-    showToast('❌ Không kết nối được server! Kiểm tra backend đang chạy.', 'err');
-  } finally { setLoading(false); }
+    const res = await fetch(API_BASE + '/api/orders/' + ORDER_ID, { method:'DELETE' });
+    if (res.ok || res.status === 204) {
+      showToast('✅ Đã xóa đơn hàng!', 'success');
+      setTimeout(() => window.location.href = ORDERS_URL, 1400);
+    } else { showToast('❌ Xóa đơn thất bại!', 'error'); }
+  } catch { showToast('❌ Không kết nối được server!', 'error'); }
 }
 
-/* ─── RESET VỀ DATA GỐC ─── */
-function resetForm() {
-  if (!originalData) return;
-  if (!confirm('Hoàn tác tất cả thay đổi và quay về dữ liệu gốc?')) return;
-  changedFields.clear();
-  document.querySelectorAll('.changed').forEach(el => el.classList.remove('changed'));
-  fillForm(originalData);
-  showToast('↩ Đã hoàn tác về dữ liệu gốc', 'ok');
-}
+/* ─── HELPERS ─── */
+function setText(id, val) { const el = document.getElementById(id); if (el) el.textContent = val ?? '—'; }
+function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n||0) + 'đ'; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-/* ─── NAVIGATION ─── */
-function goBack() {
-  if (changedFields.size > 0) {
-    if (!confirm('Bạn có thay đổi chưa lưu. Thoát mà không lưu?')) return;
-  }
-  window.location.href = ORDER_ID ? `/orders/${ORDER_ID}` : ORDERS_URL;
-}
-
-/* ─── UI HELPERS ─── */
-function setLoading(on) {
-  document.getElementById('submitBtn').disabled      = on;
-  document.getElementById('spin').style.display      = on ? 'block' : 'none';
-  document.getElementById('submitIco').style.display = on ? 'none'  : 'inline';
+function showError(msg) {
+  document.getElementById('mainSkeleton').style.display = 'none';
+  document.getElementById('mainLayout').style.display   = 'none';
+  document.getElementById('errorState').style.display   = 'block';
+  document.getElementById('errorMsg').textContent        = msg;
 }
 
 function showToast(msg, type) {
-  const t = (type === 'ok') ? 'success' : (type === 'err') ? 'error' : (type || 'success');
   if (typeof window._layoutShowToast === 'function') {
-    window._layoutShowToast(msg, t);
+    window._layoutShowToast(msg, type);
   } else {
-    const el = document.getElementById('toast');
-    if (el) {
-      document.getElementById('toastIco').textContent = t === 'success' ? '✓' : '✕';
-      document.getElementById('toastMsg').textContent = msg;
-      el.className = 'show ' + t;
-      clearTimeout(window._toastTimer);
-      window._toastTimer = setTimeout(() => el.className = '', 3200);
+    let t = document.getElementById('_sToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = '_sToast';
+      t.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13.5px;font-weight:700;color:#fff;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,.2);transition:opacity .3s';
+      document.body.appendChild(t);
     }
+    t.textContent      = msg;
+    t.style.background = type === 'success' ? '#198754' : '#dc3545';
+    t.style.opacity    = '1';
+    clearTimeout(window._toastTimer);
+    window._toastTimer = setTimeout(() => { t.style.opacity = '0'; }, 3000);
   }
 }
-
-function showError(msg) {
-  document.querySelector('.content').innerHTML = `
-    <div style="text-align:center;padding:60px 20px;color:var(--danger)">
-      <i class="bi bi-exclamation-triangle" style="font-size:36px;display:block;margin-bottom:12px"></i>
-      <p style="font-size:14px;font-weight:600">${msg}</p>
-      <a href="/orders" style="display:inline-flex;align-items:center;gap:6px;margin-top:20px;
-        padding:8px 18px;border-radius:6px;border:1.5px solid #dee2e6;color:#495057;
-        font-weight:700;text-decoration:none;font-size:13px">
-        <i class="bi bi-arrow-left"></i> Quay lại danh sách
-      </a>
-    </div>`;
-}
-
-function fmt(n) { return new Intl.NumberFormat('vi-VN').format(n||0) + 'đ'; }
-function esc(s) { return String(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
-
-/* ─── XOÁ INVALID KHI GÕ ─── */
-['customerName','phone','address'].forEach(id =>
-  document.getElementById(id)?.addEventListener('input', function(){ this.classList.remove('invalid'); })
-);
 
 /* ─── INIT ─── */
 loadOrder();
